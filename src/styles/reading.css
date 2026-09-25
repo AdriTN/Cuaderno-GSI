@@ -1,0 +1,17 @@
+/* Tipografía de lectura para los apuntes, cuadernos y solucionarios (HTML del temario). */
+.reading { font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.7; max-width: var(--reading-w); color: var(--ink); }
+.reading > :first-child { margin-top: 0; }
+.reading p, .reading ul, .reading ol { margin: 0 0 1em; }
+.reading li { margin: .25em 0; }
+.reading h2 { font-family: var(--font-ui); font-size: var(--text-xl); margin: 2.2em 0 .6em; padding-top: .6em; border-top: 1px solid var(--line); }
+.reading h3 { font-family: var(--font-ui); font-size: var(--text-lg); margin: 1.8em 0 .5em; }
+.reading h4 { font-family: var(--font-ui); font-size: var(--text-md); margin: 1.4em 0 .4em; }
+.reading strong { font-weight: 600; }
+.reading table { border-collapse: collapse; font-family: var(--font-ui); font-size: var(--text-sm); display: block; overflow-x: auto; margin: 1.2em 0; }
+.reading th, .reading td { border: 1px solid var(--line); padding: 7px 10px; vertical-align: top; text-align: left; }
+.reading th { background: var(--sunken); }
+.reading code, .reading pre { font-family: var(--font-mono); font-size: .86em; }
+.reading pre { background: var(--sunken); padding: var(--space-3); border-radius: var(--radius-sm); overflow-x: auto; }
+.reading img { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-2); margin: .6em 0; }
+.reading .topic-content__toc { display: none; }
+.reading mark.hl { background: var(--mark-soft); color: inherit; border-radius: 2px; padding: 0 1px; cursor: pointer; box-shadow: 0 1px 0 var(--mark); }

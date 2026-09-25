@@ -1,0 +1,9 @@
+.c-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6); }
+.c-panel--flush { padding: 0; overflow: hidden; }
+.c-panel--sunken { background: var(--sunken); border-color: transparent; }
+.c-panel__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
+.c-panel--flush .c-panel__head { padding: var(--space-5) var(--space-6) 0; }
+.c-panel__title { font-size: var(--text-lg); font-weight: 700; }
+.c-panel__sub { color: var(--muted); font-size: var(--text-sm); margin-top: 2px; }
+@media (max-width: 640px) { .c-panel { padding: var(--space-4); border-radius: var(--radius-md); } .c-panel--flush { padding: 0; } .c-panel--flush .c-panel__head { padding: var(--space-4) var(--space-4) 0; } }
+.c-panel { box-shadow: 0 1px 2px rgba(15, 30, 55, .04); }

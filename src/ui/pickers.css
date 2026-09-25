@@ -1,0 +1,77 @@
+/* ---------- Disparador común (desplegable y fecha) ---------- */
+.c-dd { display: inline-flex; align-items: center; justify-content: space-between; gap: var(--space-2); height: 42px; padding: 0 12px; min-width: 0; max-width: 100%;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); cursor: pointer; text-align: left; transition: border-color .12s, box-shadow .12s; }
+.c-dd:hover { border-color: var(--accent); }
+.c-dd[aria-expanded="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.c-dd--block { display: flex; width: 100%; }
+.c-dd--sm { height: 30px; padding: 0 8px; font-size: var(--text-sm); border-radius: 6px; gap: 4px; }
+.c-dd__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.c-dd__chev { transform: rotate(90deg); color: var(--muted); flex: 0 0 auto; transition: transform .15s; }
+.c-dd[aria-expanded="true"] .c-dd__chev { transform: rotate(-90deg); }
+.c-date { justify-content: flex-start; }
+.c-date .c-icon { color: var(--accent); }
+
+/* ---------- Capa flotante ---------- */
+.c-pop { position: fixed; z-index: 80; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); overflow: hidden; max-height: min(420px, 70vh); display: flex; flex-direction: column; }
+.c-pop__title { display: none; }
+@media (prefers-reduced-motion: no-preference) { .c-pop { animation: pop-in .14s var(--ease); } .c-pop--up { animation-name: pop-up; }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  @keyframes pop-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+/* En móvil: panel inferior */
+.c-sheet { position: fixed; inset: 0; z-index: 80; }
+.c-sheet__scrim { position: absolute; inset: 0; background: rgba(10, 20, 38, .45); }
+.c-sheet__body { position: absolute; left: 0; right: 0; bottom: 0; max-height: 78vh; display: flex; flex-direction: column; background: var(--surface); border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: var(--shadow-pop); }
+.c-sheet__grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line-strong); margin: 8px auto 4px; flex: 0 0 auto; }
+.c-sheet .c-pop__title { display: block; font-weight: 700; padding: var(--space-2) var(--space-5) var(--space-3); border-bottom: 1px solid var(--line); }
+@media (prefers-reduced-motion: no-preference) { .c-sheet__body { animation: sheet-in .2s var(--ease); } @keyframes sheet-in { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } } }
+
+/* ---------- Lista del desplegable ---------- */
+.c-dd__search { padding: var(--space-2); border-bottom: 1px solid var(--line); }
+.c-dd__search input { width: 100%; height: 38px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 0 10px; background: var(--paper); }
+.c-dd__search input:focus { outline: 0; border-color: var(--accent); }
+.c-dd__list { list-style: none; margin: 0; padding: 4px; overflow-y: auto; outline: 0; }
+.c-dd__opt { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 9px 10px; border-radius: 7px; cursor: pointer; }
+.c-dd__opt.is-active { background: var(--sunken); }
+.c-dd__opt[aria-selected="true"] { color: var(--accent); font-weight: 700; }
+.c-dd__opt[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.c-dd__label { display: grid; min-width: 0; }
+.c-dd__hint { font-size: var(--text-xs); color: var(--muted); font-weight: 400; }
+.c-dd__group { font-size: var(--text-xs); color: var(--muted); padding: 10px 10px 4px; font-weight: 700; }
+.c-dd__empty { padding: 14px; color: var(--muted); text-align: center; }
+@media (max-width: 640px) { .c-dd__opt { padding: 12px; } }
+
+/* ---------- Calendario ---------- */
+.c-cal { padding: var(--space-3); }
+.c-cal__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
+.c-cal__title { font-family: var(--font-serif); font-size: var(--text-lg); text-transform: capitalize; }
+.c-cal__nav { width: 36px; height: 36px; border: 0; background: none; border-radius: 8px; cursor: pointer; color: var(--ink-2); display: grid; place-items: center; }
+.c-cal__nav:hover { background: var(--sunken); }
+.c-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.c-cal__dow { text-align: center; font-size: var(--text-xs); color: var(--muted); font-weight: 700; padding: 4px 0; }
+.c-cal__day { aspect-ratio: 1; border: 0; background: none; border-radius: 50%; cursor: pointer; font-variant-numeric: tabular-nums; color: var(--ink); min-height: 36px; }
+.c-cal__day:hover:not(:disabled) { background: var(--sunken); }
+.c-cal__day.is-today { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.c-cal__day.is-selected { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.c-cal__day:disabled { opacity: .3; cursor: not-allowed; }
+.c-cal__foot { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--line); }
+.c-cal__link { border: 0; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 4px; }
+@media (max-width: 640px) { .c-cal { padding: var(--space-4); } .c-cal__day { min-height: 44px; } .c-cal__foot .u-muted { display: none; } }
+
+/* ---------- Número ---------- */
+.c-num { display: inline-flex; align-items: stretch; height: 42px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); overflow: hidden; }
+.c-num:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.c-num__btn { width: 42px; border: 0; background: var(--sunken); color: var(--ink-2); cursor: pointer; display: grid; place-items: center; }
+.c-num__btn:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+.c-num__btn:disabled { opacity: .35; cursor: not-allowed; }
+.c-num__field { display: flex; align-items: center; gap: 4px; padding: 0 8px; cursor: text; }
+.c-num__field input { width: 3ch; border: 0; background: none; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; font-size: var(--text-md); outline: 0; padding: 0; }
+.c-num__unit { color: var(--muted); font-size: var(--text-sm); }
+
+/* ---------- Casilla ---------- */
+.c-check { position: relative; }
+.c-check input { position: absolute; opacity: 0; width: 20px; height: 20px; margin: 1px 0 0; }
+.c-check__box { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 1px; border: 1.5px solid var(--line-strong); border-radius: 6px; background: var(--surface); display: grid; place-items: center; color: transparent; transition: background-color .12s, border-color .12s; }
+.c-check:hover .c-check__box { border-color: var(--accent); }
+.c-check input:checked + .c-check__box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.c-check input:focus-visible + .c-check__box { outline: 3px solid var(--accent); outline-offset: 2px; }
+.c-field > .c-num { justify-self: start; }

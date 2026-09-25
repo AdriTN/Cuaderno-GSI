@@ -1,0 +1,66 @@
+# Cada mañana revisa BOE e INAP. Si hay novedades: actualiza la app, la vuelve a publicar
+# y abre un aviso (issue) en el repositorio, que GitHub te envía por correo.
+name: Novedades de la oposición
+
+on:
+  schedule:
+    - cron: '30 6 * * *'   # todos los días a las 06:30 UTC (08:30 en la Península en verano, 07:30 en Canarias)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      MAIL_TO: ${{ secrets.MAIL_TO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: check
+        run: python3 scripts/check_updates.py
+
+      - name: Guardar novedades en el repositorio
+        run: |
+          git config user.name "cuaderno-gsi-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/live.json
+          git diff --cached --quiet || git commit -m "Novedades: comprobación del $(date -u +%F)"
+          git push
+
+      # Los cambios hechos con GITHUB_TOKEN no lanzan otros workflows por sí solos: se lanza la publicación a mano.
+      - name: Volver a publicar la app
+        if: steps.check.outputs.has_news == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
+
+      # GitHub envía por correo los issues nuevos a quien vigila el repositorio (tú, por defecto).
+      - name: Avisar con un issue
+        if: steps.check.outputs.has_news == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create novedades --color FFE066 --description "Novedades de la oposición" 2>/dev/null || true
+          gh issue create --title "Novedades de la oposición: $(date -u +%d/%m/%Y) (${{ steps.check.outputs.count }})" --body-file novedades.md --label novedades
+
+      # Opcional: correo directo a la dirección que quieras. Configura los secretos MAIL_SERVER, MAIL_PORT,
+      # MAIL_USERNAME, MAIL_PASSWORD y MAIL_TO (ver README). Si no existen, este paso se omite.
+      - name: Enviar correo
+        if: steps.check.outputs.has_news == 'true' && env.MAIL_TO != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Novedades de la oposición (${{ steps.check.outputs.count }})"
+          to: ${{ secrets.MAIL_TO }}
+          from: Cuaderno GSI <${{ secrets.MAIL_USERNAME }}>
+          html_body: file://novedades.md
+          convert_markdown: true

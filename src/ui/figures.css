@@ -1,0 +1,9 @@
+.c-figures { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.c-figure { padding: var(--space-5) var(--space-6); border-left: 1px solid var(--line); display: grid; gap: var(--space-1); align-content: start; }
+.c-figure:first-child { border-left: 0; }
+.c-figure__value { font-family: var(--font-serif); font-size: var(--text-3xl); line-height: 1; font-variant-numeric: tabular-nums lining-nums; }
+.c-figure__label { color: var(--muted); font-size: var(--text-sm); }
+.c-figure__extra { margin-top: var(--space-2); }
+@media (max-width: 720px) { .c-figures { grid-template-columns: 1fr; } .c-figure { border-left: 0; border-top: 1px solid var(--line); padding: var(--space-4); } .c-figure:first-child { border-top: 0; } }
+.c-figures-wrap { container-type: inline-size; }
+@container (max-width: 520px) { .c-figures { grid-template-columns: 1fr; } .c-figure { border-left: 0; border-top: 1px solid var(--line); padding: var(--space-4) var(--space-5); } .c-figure:first-child { border-top: 0; } }

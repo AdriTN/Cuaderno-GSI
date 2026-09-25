@@ -1,0 +1,52 @@
+{
+  "_comment": "Qué vigila scripts/check_updates.py. Añade o quita cuerpos, palabras o páginas y se aplica en la siguiente comprobación.",
+  "boe": {
+    "keywords": [
+      "Gestión de Sistemas e Informática",
+      "Técnicos Auxiliares de Informática",
+      "Sistemas y Tecnologías de la Información",
+      "Tecnologías de la Información y las Comunicaciones"
+    ],
+    "must_also_include_any": [
+      "proceso selectivo",
+      "pruebas selectivas",
+      "oferta de empleo",
+      "aspirantes",
+      "aprobados",
+      "nombra",
+      "convoca",
+      "tribunal",
+      "calificador",
+      "destinos",
+      "funcionarios en prácticas",
+      "funcionarios de carrera",
+      "bolsa",
+      "interin"
+    ],
+    "max_days_back": 10
+  },
+  "pages": [
+    {
+      "name": "INAP, convocatoria 2025",
+      "url": "https://sede.inap.gob.es/es/procedimientos-y-servicios/seleccion/procesos-selectivos-de-cuerpos-y-escalas-generales/cuerpo-de-gestion-de-sistemas-e-informatica-de-la-administracion-del-estado-ingreso-libre-convocatoria-2025",
+      "year": 2025
+    },
+    {
+      "name": "INAP, convocatoria 2024",
+      "url": "https://sede.inap.gob.es/gsil-2024",
+      "year": 2024
+    },
+    {
+      "name": "INAP, convocatoria 2022",
+      "url": "https://sede.inap.gob.es/gsil-oep-2020-2021-2022",
+      "year": 2022
+    }
+  ],
+  "page_link_filter": [
+    ".pdf",
+    "/documents/",
+    "descarga",
+    "download",
+    "document"
+  ]
+}

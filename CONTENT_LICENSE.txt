@@ -1,0 +1,64 @@
+PREPARACIÓN GSI — LICENCIA DE USO GRATUITO NO COMERCIAL CON ATRIBUCIÓN
+Versión 1.0 — 17 de septiembre de 2026
+
+Copyright (c) 2026 AngeldelaCalleFernandez
+Creador del proyecto: https://github.com/AngeldelaCalleFernandez
+Proyecto: https://github.com/AngeldelaCalleFernandez/Preparacion-GSI
+
+1. Alcance
+
+Esta licencia se aplica al código y a las aportaciones originales de
+Preparación GSI sobre los que el creador puede conceder derechos. No modifica
+las licencias ni los derechos de documentos oficiales, materiales de terceros,
+dependencias, marcas o fuentes incorporadas o enlazadas. Esos elementos se
+rigen por sus propias condiciones y conservan sus atribuciones. La mera
+presencia de un material en este repositorio no lo somete a esta licencia.
+
+2. Permisos gratuitos y no comerciales
+
+Se permite, sin pagar al creador, usar, ejecutar, estudiar, copiar, modificar
+y compartir los elementos cubiertos, siempre que el uso sea no comercial y
+se cumplan estas condiciones. Su redistribución y el acceso a copias o
+adaptaciones deben ofrecerse gratuitamente.
+
+No se autoriza venderlos, cobrar por su acceso, integrarlos en productos o
+servicios de pago ni explotarlos para obtener una ventaja comercial o una
+contraprestación económica. Cualquier uso comercial requiere un permiso
+separado y expreso del titular correspondiente.
+
+3. Atribución obligatoria
+
+Las copias y adaptaciones deben conservar esta licencia y el aviso de
+copyright, identificar a AngeldelaCalleFernandez como creador de Preparación
+GSI e incluir el enlace al proyecto original. En una aplicación con interfaz,
+la atribución debe ser visible en un pie de página o apartado de créditos
+fácilmente accesible. En documentos debe figurar en sus créditos.
+
+Texto de atribución:
+«Preparación GSI — creado por AngeldelaCalleFernandez.
+https://github.com/AngeldelaCalleFernandez/Preparacion-GSI
+Uso gratuito y no comercial, con atribución.»
+
+Las modificaciones deben identificarse como tales y no deben presentarse como
+el proyecto original ni como aprobadas por su creador. No se pueden retirar
+los avisos de autoría, procedencia o licencia de materiales de terceros.
+
+4. Conservación de las condiciones
+
+Al compartir copias o adaptaciones, se deben mantener estas condiciones para
+los elementos cubiertos por esta licencia. No se concede el derecho a
+autorizar usos comerciales de esos elementos ni a eliminar la atribución.
+
+5. Garantías y derechos reservados
+
+El proyecto se proporciona tal cual, sin garantías de exactitud, adecuación
+a una convocatoria o funcionamiento ininterrumpido. En la medida permitida
+por la legislación aplicable, el creador no asume responsabilidad por daños
+derivados de su uso. Esta cláusula no limita derechos irrenunciables.
+
+No se conceden derechos distintos de los indicados ni se restringen usos
+permitidos directamente por la ley. La licencia solo autoriza los usos que
+cumplan sus condiciones. Para otros usos, solicita permiso al titular.
+
+Esta es una licencia específica del proyecto con restricción comercial;
+no es la licencia MIT ni una licencia de código abierto aprobada por la OSI.

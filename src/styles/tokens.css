@@ -1,0 +1,47 @@
+/* Tokens de diseño. Toda la paleta y la escala viven aquí; los componentes solo usan variables. */
+:root {
+  --font-ui: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* Escala tipográfica (razón 1,25) */
+  --text-xs: .8rem; --text-sm: .875rem; --text-md: 1rem; --text-lg: 1.125rem;
+  --text-xl: 1.375rem; --text-2xl: 1.75rem; --text-3xl: 2.25rem; --text-4xl: 2.85rem;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  --sidebar-w: 248px; --content-w: 880px; --reading-w: 68ch;
+  --ease: cubic-bezier(.2, .7, .3, 1);
+
+  --paper: #F1F4F8; --surface: #FFFFFF; --sunken: #E7ECF2;
+  --ink: #14213A; --ink-2: #3A4960; --muted: #5E6E83;
+  --line: #D4DCE6; --line-strong: #B8C3D0;
+  --accent: #2356A8; --accent-hover: #1B478E; --accent-soft: #E1EAF7; --on-accent: #FFFFFF;
+  --mark: #FFE066; --mark-soft: #FFF1AE; --on-mark: #14213A;
+  --ok: #1B7A52; --ok-soft: #E2F2E9; --bad: #B42318; --bad-soft: #FCE8E6; --warn: #8F5A00; --warn-soft: #FFF3D9;
+  --shadow-pop: 0 10px 30px rgba(15, 30, 55, .14), 0 2px 6px rgba(15, 30, 55, .08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0D1520; --surface: #151F2E; --sunken: #1C2839;
+    --ink: #E6ECF4; --ink-2: #C1CCDA; --muted: #8FA0B5;
+    --line: #28364A; --line-strong: #3A4B63;
+    --accent: #86B4F3; --accent-hover: #A5C8F7; --accent-soft: #1D3150; --on-accent: #0D1520;
+    --mark: #E9CB4C; --mark-soft: rgba(233, 203, 76, .26); --on-mark: #0D1520;
+    --ok: #5CC790; --ok-soft: #133226; --bad: #FF8C80; --bad-soft: #3A1B1A; --warn: #F0C35C; --warn-soft: #372A10;
+    --shadow-pop: 0 10px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0D1520; --surface: #151F2E; --sunken: #1C2839;
+  --ink: #E6ECF4; --ink-2: #C1CCDA; --muted: #8FA0B5;
+  --line: #28364A; --line-strong: #3A4B63;
+  --accent: #86B4F3; --accent-hover: #A5C8F7; --accent-soft: #1D3150; --on-accent: #0D1520;
+  --mark: #E9CB4C; --mark-soft: rgba(233, 203, 76, .26); --on-mark: #0D1520;
+  --ok: #5CC790; --ok-soft: #133226; --bad: #FF8C80; --bad-soft: #3A1B1A; --warn: #F0C35C; --warn-soft: #372A10;
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
