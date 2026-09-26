@@ -4,6 +4,7 @@ import { BLOCKS, TOPICS, blockById, topicById, topicCode } from '@/core/content'
 import { allCards, cardById, type StudyCard } from '@/core/domain/cards';
 import type { CardGrade } from '@/core/domain/srs';
 import { aiBackend, aiStatus } from '@/core/services/ai';
+import { agentConfigured, bridgeConfigured } from '@/core/services/connections';
 import { deleteOwnCard, gradeStudyCard } from '@/core/store/actions';
 import { dueCardIds, newCardIds, topicStatus } from '@/core/store/selectors';
 import { docs, onReset, useDocs } from '@/core/store/store';
@@ -115,7 +116,7 @@ function BulkDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
       ]} /></Field>
       <Checkbox checked={skip} onChange={setSkip}>Saltar los temas que ya tienen tarjetas de IA</Checkbox>
       {!topics.length && <p class="u-muted u-small" style={{ margin: 0 }}>No hay temas que cumplan esas condiciones.</p>}
-      {aiBackend.value === 'manual' && topics.length > 1 && <Callout tone="warn">Con tu suscripción tendrás que copiar y pegar una vez por tema ({topics.length} veces). Para muchos temas es más cómodo hacerlo desde la app dentro de Claude, donde es automático.</Callout>}
+      {aiBackend.value === 'suscripcion' && !bridgeConfigured() && !agentConfigured() && topics.length > 1 && <Callout tone="warn">Con tu suscripción tendrás que copiar y pegar una vez por tema ({topics.length} veces). Para muchos temas es más cómodo hacerlo desde la app dentro de Claude, donde es automático.</Callout>}
     </Modal>
   );
 }

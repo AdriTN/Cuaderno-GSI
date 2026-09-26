@@ -11,3 +11,16 @@
 .st-up .c-icon { transform: rotate(90deg); }
 .st-down .c-icon { transform: rotate(90deg); }
 .st-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.ai-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-4); display: grid; gap: var(--space-3); background: var(--surface); }
+.ai-card--muted { background: var(--sunken); border-color: transparent; }
+.ai-card__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.ai-card__step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: var(--text-xs); margin-right: var(--space-2); }
+.ai-card__fields { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ai-card__fields--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@container (max-width: 640px) { .ai-card__fields, .ai-card__fields--3 { grid-template-columns: minmax(0, 1fr); } }
+.ai-card__help summary { cursor: pointer; font-size: var(--text-sm); color: var(--accent); font-weight: 700; }
+.ai-card__help ol { margin: var(--space-2) 0; padding-left: 20px; display: grid; gap: 6px; font-size: var(--text-sm); }
+.ai-card__help p { font-size: var(--text-sm); color: var(--muted); margin: 0; }
+.ai-card__help code { font-family: var(--font-mono); font-size: .85em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.ai-usage { display: grid; gap: var(--space-4); }
+.ai-usage__row { display: grid; gap: 6px; }

@@ -7,7 +7,9 @@ import { syncMessage, syncState } from '@/core/store/sync';
 import { clock } from '@/core/utils/format';
 import { Button, DialogHost, Icon, ToastHost, type IconName } from '@/ui';
 import { contextLabel, pendingSeconds, tick, timer, toggleTimer } from './studyTimer';
+import { AiActivity } from './AiActivity';
 import { ClaudeBridge } from './ClaudeBridge';
+import { UsageMini } from './UsageMini';
 import './layout.css';
 
 type NavItem = { name: string; label: string; icon: IconName; badge?: () => number };
@@ -86,6 +88,7 @@ export function Shell({ children }: { children: ComponentChildren }) {
         ))}
         <div class="l-side__foot">
           <TimerControl />
+          <UsageMini />
           <div class={`l-sync l-sync--${syncState.value}`} title={syncMessage.value}><i />{SYNC_LABEL[syncState.value]}</div>
         </div>
       </aside>
@@ -112,6 +115,7 @@ export function Shell({ children }: { children: ComponentChildren }) {
       <ToastHost />
       <DialogHost />
       <ClaudeBridge />
+      <AiActivity />
     </div>
   );
 }

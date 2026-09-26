@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAIL_TO: ${{ secrets.MAIL_TO }}
-      CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,25 +24,6 @@ jobs:
           python-version: '3.12'
       - id: check
         run: python3 scripts/check_updates.py
-
-      # Opcional: si hay CLAUDE_CODE_OAUTH_TOKEN, Claude (con tu suscripción) lee los documentos y explica
-      # qué supone cada novedad para la oposición. Se añade al aviso; si falla, el aviso sale igualmente.
-      - name: Explicar las novedades con Claude
-        if: steps.check.outputs.has_news == 'true' && env.CLAUDE_TOKEN != ''
-        continue-on-error: true
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: |
-            Eres un preparador de la oposición al Cuerpo de Gestión de Sistemas e Informática del Estado (GSI, A2).
-            En el archivo novedades.md hay novedades oficiales recién detectadas (BOE e INAP) con sus enlaces.
-            Lee cada documento enlazado y AÑADE al final de novedades.md una sección "## Qué significa para ti" con,
-            para cada novedad: en 2-4 frases, qué es, a quién afecta, plazos o fechas concretas si los hay
-            (inscripción, alegaciones, examen) y qué debería hacer un opositor. No inventes datos: si un
-            documento no se puede leer, dilo. Escribe en español. No modifiques ningún otro archivo.
-          claude_args: |
-            --max-turns 15
-            --allowedTools "Read,Edit(novedades.md),Write(novedades.md),WebFetch(domain:www.boe.es),WebFetch(domain:boe.es),WebFetch(domain:sede.inap.gob.es),WebFetch(domain:www.inap.es)"
 
       - name: Guardar novedades en el repositorio
         run: |

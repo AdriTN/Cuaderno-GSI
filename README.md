@@ -53,31 +53,48 @@ instalada se actualiza sola la siguiente vez que se abre con conexión.
   *Ajustes → Exportar copia* e *Importar copia*.
 - El repositorio y la web publicada no contienen ninguna clave ni dato personal.
 
-## Inteligencia artificial
+## Inteligencia artificial con tu suscripción de Claude (sin API)
 
-| Dónde abres la app | Cómo funciona la IA | Qué gasta |
-|---|---|---|
-| Dentro de Claude (artifact, también en la app de Claude del móvil) | Automática | La suscripción de Claude de quien la abre |
-| Versión web, modo «Mi suscripción de Claude» (por defecto) | La app prepara la consulta, la pegas en claude.ai y pegas la respuesta | Tu suscripción de Claude |
-| Versión web, modo «Clave de la API» (opcional) | Automática | Créditos de la API de Anthropic (aparte de la suscripción) |
+| Dónde usas la app | Cómo funciona la IA |
+|---|---|
+| Dentro de Claude (artifact) | Automática, con la suscripción de quien la abre |
+| Versión web (GitHub Pages) | Por orden: **puente del PC** → **agente de GitHub** → copiar y pegar en claude.ai |
 
-No existe una forma oficial de que una web externa use una suscripción de Claude: por eso fuera de Claude
-se usa el puente de copiar y pegar, o la API con clave propia (guardada solo en el navegador).
+Las tres vías de la versión web usan tu suscripción. La clave de la API queda como opción avanzada.
 
-## Agente de Claude con tu suscripción
+### 1. Puente en tu PC (`bridge/`): respuestas en segundos
 
-`.github/workflows/claude.yml` usa la GitHub Action oficial de Claude Code con tu suscripción Pro o Max
-(sin API ni pagos extra; el uso cuenta en los límites de tu plan):
+Un pequeño programa (Node, sin dependencias) que recibe las consultas de la web y las pasa a Claude Code
+(`claude -p`), que responde con tu suscripción. También lee cuánto uso te queda.
 
-1. Instala Claude Code en tu equipo y ejecuta `claude setup-token`; copia el token que genera.
-2. En el repositorio: *Settings → Secrets and variables → Actions → New repository secret*, con nombre
-   `CLAUDE_CODE_OAUTH_TOKEN` y el token como valor.
-3. Instala la app de GitHub de Claude en el repositorio: https://github.com/apps/claude
-4. Escribe `@claude` en un issue o comentario con lo que quieras («añade…», «corrige…»). Solo responde al
-   propietario del repositorio.
+```bash
+node bridge/cuaderno-bridge.mjs --origen https://tu-usuario.github.io   # primera vez
+node bridge/cuaderno-bridge.mjs --instalar                              # arranque automático con Windows
+```
 
-Con el mismo secreto, el aviso diario de novedades incluye una explicación de Claude sobre qué supone cada
-una. `CLAUDE.md` resume la arquitectura y las normas para que el agente trabaje con el contexto correcto.
+Copia el código de emparejamiento que muestra en *Ajustes → Inteligencia artificial → Puente en tu PC*.
+La primera vez, el navegador puede pedir permiso para que la web acceda a tu red local: acéptalo.
+
+### 2. Agente en GitHub (`agente/`): desde el móvil o fuera de casa
+
+Plantilla para un repositorio **privado** aparte: la app sube la consulta, un workflow la responde con
+Claude Code y la app recoge la respuesta (1-3 minutos). Instrucciones en `agente/README.md`.
+
+### Uso de la suscripción
+
+*Ajustes* y la barra lateral muestran cuánto te queda de la sesión (5 horas) y de la semana. El dato viene
+de un servicio no oficial de Anthropic (el mismo que usa `/usage`): si deja de funcionar, la IA sigue
+funcionando y solo desaparece el indicador.
+
+### Seguridad: nadie más puede usar tu suscripción
+
+- **Este repositorio público no contiene ningún token de Claude.** Tu token está solo en los secretos
+  (cifrados) del repositorio privado del agente, que nadie más ve.
+- **La web no lleva credenciales.** Para usar el puente o el agente hacen falta dos llaves que se guardan
+  solo en tu navegador: el código del puente y un token de GitHub limitado al repositorio privado.
+- **El puente solo escucha en tu propio ordenador** (127.0.0.1), exige el código y solo acepta tu web.
+- **Claude se ejecuta sin herramientas** y en una carpeta vacía: solo puede devolver texto.
+- La app **se niega a usar un repositorio de agente público**.
 
 ## Novedades automáticas de la oposición
 

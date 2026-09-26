@@ -65,3 +65,14 @@
 .cb-steps li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); counter-increment: cb; padding-left: 36px; position: relative; min-height: 34px; flex-wrap: wrap; }
 .cb-steps li::before { content: counter(cb); position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: var(--text-sm); }
 .cb-prompt { white-space: pre-wrap; font-size: var(--text-xs); max-height: 200px; overflow: auto; background: var(--sunken); padding: var(--space-3); border-radius: var(--radius-sm); margin: var(--space-2) 0 0; user-select: all; }
+.l-usage { display: grid; gap: 4px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); text-decoration: none; color: var(--ink-2); font-size: var(--text-xs); border: 1px solid var(--line); }
+.l-usage:hover { background: var(--sunken); color: var(--ink); }
+.l-usage__title { font-weight: 700; color: var(--muted); }
+.l-usage__row { display: grid; grid-template-columns: 52px 1fr 36px; align-items: center; gap: 6px; }
+.l-usage__row .u-num { text-align: right; }
+.l-usage__bar { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+.l-usage__bar span { display: block; height: 100%; }
+.l-ai { position: fixed; left: calc(var(--sidebar-w) + var(--space-5)); bottom: var(--space-5); z-index: 55; display: flex; align-items: center; gap: var(--space-3); background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius-md); padding: 6px 6px 6px 14px; box-shadow: var(--shadow-pop); font-size: var(--text-sm); max-width: calc(100vw - 32px); }
+.l-ai__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+@media (prefers-reduced-motion: no-preference) { .l-ai__dot { animation: ai-pulse 1.2s ease-in-out infinite; } @keyframes ai-pulse { 50% { opacity: .3; transform: scale(.8); } } }
+@media (max-width: 900px) { .l-ai { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }

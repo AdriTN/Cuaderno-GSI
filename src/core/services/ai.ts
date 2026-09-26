@@ -1,19 +1,23 @@
 /**
  * IA de la app, con tres conexiones posibles:
  *  - "claude": dentro de Claude, con la capacidad `sample` del visor. Gasta el uso de Claude de quien abre la app.
- *  - "manual": fuera de Claude, puente de copiar y pegar con claude.ai: usa la suscripción de Claude del usuario.
+ *  - "suscripcion": fuera de Claude, con la suscripción del usuario y por este orden: puente del PC (segundos),
+ *    agente en un repositorio privado de GitHub (1-3 min) y, si no hay ninguno, copiar y pegar con claude.ai.
  *  - "apikey": fuera de Claude y opcional, llamando a la API de Anthropic con la clave de ESTE navegador.
  * La clave se guarda solo en el localStorage de este dispositivo: no va en el HTML, no se sincroniza
  * con la nube y no se incluye en las copias exportadas. Quien use otra copia de la app pone la suya.
  */
 import { signal } from '@preact/signals';
 import { onReset } from '../store/store';
+import { AgentError, agentAsk, type Cancel } from './agent';
+import { BridgeError, bridgeAsk, bridgeStatus, forgetBridgeStatus } from './bridge';
+import { agentConfigured, bridgeConfigured } from './connections';
 import { useCapability } from './platform';
 
 type Sample = ((input: string, opts?: any) => Promise<{ text: string }>) & { json?: (input: string, opts?: any) => Promise<any> };
 export type AiStatus = 'loading' | 'ready' | 'off';
-export type AiBackend = 'claude' | 'manual' | 'apikey' | 'none';
-export type AiMode = 'manual' | 'apikey';
+export type AiBackend = 'claude' | 'suscripcion' | 'apikey' | 'none';
+export type AiMode = 'suscripcion' | 'apikey';
 export type Tier = 'quick' | 'default' | 'complex';
 
 export const MODELS: [string, string][] = [
@@ -32,12 +36,12 @@ export const aiStatus = signal<AiStatus>('loading');
 export const aiBackend = signal<AiBackend>('none');
 export const apiKey = signal(readLS(KEY_LS));
 export const apiModel = signal(readLS(MODEL_LS) || 'claude-sonnet-5');
-export const aiMode = signal<AiMode>(readLS(MODE_LS) === 'apikey' ? 'apikey' : 'manual');
+export const aiMode = signal<AiMode>(readLS(MODE_LS) === 'apikey' ? 'apikey' : 'suscripcion');
 let sample: Sample | null = null;
 
 function refresh() {
   if (sample) { aiBackend.value = 'claude'; aiStatus.value = 'ready'; return; }
-  aiBackend.value = insideClaude ? 'none' : aiMode.value === 'apikey' && apiKey.value ? 'apikey' : aiMode.value === 'apikey' ? 'none' : 'manual';
+  aiBackend.value = insideClaude ? 'none' : aiMode.value === 'apikey' ? (apiKey.value ? 'apikey' : 'none') : 'suscripcion';
   aiStatus.value = aiBackend.value === 'none' ? 'off' : 'ready';
 }
 export async function initAi() { sample = insideClaude ? await useCapability<Sample>('sample') : null; refresh(); }
@@ -48,13 +52,42 @@ export function setApiKey(key: string, model = apiModel.value) {
 }
 export function setAiMode(m: AiMode) { try { localStorage.setItem(MODE_LS, m); } catch { /* */ } aiMode.value = m; refresh(); }
 /** «Borrar todo» también olvida la clave de este dispositivo y vuelve al modo por suscripción. */
-onReset(() => { setApiKey('', 'claude-sonnet-5'); setAiMode('manual'); });
+onReset(() => { setApiKey('', 'claude-sonnet-5'); setAiMode('suscripcion'); });
 
 /* ---------- puente con claude.ai (suscripción) ---------- */
 export type ManualRequest = { prompt: string; json: boolean; resolve: (text: string) => void; reject: (e: any) => void };
 export const manualRequest = signal<ManualRequest | null>(null);
 function viaClaudeApp(prompt: string, json: boolean): Promise<string> {
   return new Promise((resolve, reject) => { manualRequest.value?.reject(new AiError('Consulta cancelada.', 'cancelled')); manualRequest.value = { prompt, json, resolve, reject }; });
+}
+
+/* ---------- suscripción: puente del PC → agente de GitHub → copiar y pegar ---------- */
+export type AiActivity = { via: 'puente' | 'agente'; startedAt: number; phase?: 'sent' | 'waiting'; cancel: Cancel };
+export const aiActivity = signal<AiActivity | null>(null);
+export const cancelAiActivity = () => { const a = aiActivity.value; if (a) a.cancel.cancelled = true; };
+let onAnswered: (() => void) | null = null;
+/** Para refrescar el uso de la suscripción después de cada consulta. */
+export const setOnAnswered = (fn: () => void) => { onAnswered = fn; };
+
+async function viaSubscription(prompt: string, json: boolean): Promise<string> {
+  if (bridgeConfigured() && (await bridgeStatus()).ok) {
+    const cancel = { cancelled: false };
+    aiActivity.value = { via: 'puente', startedAt: Date.now(), cancel };
+    try { const t = await bridgeAsk(prompt); onAnswered?.(); return t; }
+    catch (e: any) {
+      // Si el puente se cerró por el camino se prueba la siguiente vía; si Claude respondió con un error, se muestra.
+      if (!(e instanceof BridgeError && e.network)) throw new AiError(e.message, e.code);
+      forgetBridgeStatus();
+    } finally { aiActivity.value = null; }
+  }
+  if (agentConfigured()) {
+    const cancel = { cancelled: false };
+    aiActivity.value = { via: 'agente', startedAt: Date.now(), cancel };
+    try { const t = await agentAsk(prompt, phase => { if (aiActivity.value) aiActivity.value = { ...aiActivity.value, phase }; }, cancel); onAnswered?.(); return t; }
+    catch (e: any) { throw new AiError(e.message, e instanceof AgentError ? e.code : undefined); }
+    finally { aiActivity.value = null; }
+  }
+  return viaClaudeApp(prompt, json);
 }
 
 export class AiError extends Error { constructor(message: string, public code?: string) { super(message); } }
@@ -116,7 +149,7 @@ function ensure() {
 export async function askText(prompt: string, opts: { tier?: Tier; onText?: (text: string) => void } = {}) {
   ensure();
   if (aiBackend.value === 'apikey') return apiText(prompt, opts.onText);
-  if (aiBackend.value === 'manual') { const t = await viaClaudeApp(prompt, false); opts.onText?.(t); return t; }
+  if (aiBackend.value === 'suscripcion') { const t = await viaSubscription(prompt, false); opts.onText?.(t); return t; }
   const r = await sample!(prompt, { modelTier: opts.tier ?? 'default', onText: opts.onText ? ({ text }: { text: string }) => opts.onText!(text) : undefined });
   return r.text;
 }
@@ -125,7 +158,7 @@ export async function askJSON<T>(prompt: string, tier: Tier = 'default'): Promis
   ensure();
   const onlyJson = prompt + '\n\nResponde únicamente con el JSON, sin texto antes ni después.';
   if (aiBackend.value === 'apikey') return parseJSON(await apiText(onlyJson));
-  if (aiBackend.value === 'manual') return parseJSON(await viaClaudeApp(onlyJson, true));
+  if (aiBackend.value === 'suscripcion') return parseJSON(await viaSubscription(onlyJson, true));
   if (sample!.json) return sample!.json(prompt, { modelTier: tier });
   return parseJSON((await sample!(prompt, { modelTier: tier })).text);
 }

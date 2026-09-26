@@ -1,0 +1,42 @@
+# Agente de IA de Cuaderno GSI. Va en un repositorio PRIVADO aparte (p. ej. cuaderno-gsi-agente).
+# La app deja cada consulta en requests/<id>.json; este workflow la responde con Claude Code usando
+# tu suscripción (secreto CLAUDE_CODE_OAUTH_TOKEN) y deja la respuesta en responses/<id>.json.
+name: IA de Cuaderno GSI
+
+on:
+  push:
+    paths: ['requests/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Una ejecución cada vez; cada una responde todas las consultas pendientes.
+concurrency:
+  group: ia
+  cancel-in-progress: false
+
+jobs:
+  responder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Responder consultas
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: node procesar.mjs
+      - name: Guardar respuestas
+        run: |
+          git config user.name "cuaderno-gsi-agente"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A requests responses
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Respuestas de la IA"
+          for i in 1 2 3 4 5; do git pull -q --rebase && git push -q && exit 0; sleep $((i * 3)); done
+          exit 1

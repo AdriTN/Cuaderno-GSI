@@ -2,7 +2,8 @@ import { useEffect, useState } from 'preact/hooks';
 import { blockById } from '@/core/content';
 import { useCapability } from '@/core/services/platform';
 import { canInstall, isIOS, isStandalone, promptInstall, pwaSupported } from '@/core/services/pwa';
-import { CLAUDE_APP_URL, MODELS, aiBackend, aiErrorMessage, aiMode, apiKey, apiModel, insideClaude, setAiMode, setApiKey, testApiKey, type AiMode } from '@/core/services/ai';
+import { SubscriptionSettings, UsagePanel } from './AiConnections';
+import { MODELS, aiBackend, aiErrorMessage, aiMode, apiKey, apiModel, insideClaude, setAiMode, setApiKey, testApiKey, type AiMode } from '@/core/services/ai';
 import { exportData, importData, inspectBackup, resetAll, updateSettings } from '@/core/store/actions';
 import { useDocs } from '@/core/store/store';
 import { syncMessage, syncState } from '@/core/store/sync';
@@ -111,10 +112,9 @@ function AiSettings() {
   return (
     <Panel title="Inteligencia artificial" subtitle="Elige cómo funcionan los botones de IA en esta versión de la app.">
       <div class="st-form">
-        <Segmented block label="Modo de IA" value={aiMode.value} onChange={(m: AiMode) => setAiMode(m)} options={[['manual', 'Mi suscripción de Claude'], ['apikey', 'Clave de la API']]} />
-        {aiMode.value === 'manual' ? <>
-          <p style={{ margin: 0 }}>Cuando pulses un botón de IA, la app prepara la consulta y te ayuda a hacerla en Claude: la copias, la pegas en un chat, y pegas aquí la respuesta. Usa <strong>tu suscripción</strong> y no necesita clave ni coste extra.</p>
-          <Callout tone="info" action={<Button size="sm" href={CLAUDE_APP_URL} target="_blank" rel="noopener">Abrir en Claude</Button>}>¿Prefieres que sea automático? Abre la app dentro de Claude (también en la app de Claude del móvil): allí la IA funciona sola con tu suscripción. Ten en cuenta que el progreso de cada sitio es independiente; pásalo con Exportar e Importar copia.</Callout>
+        <Segmented block label="Modo de IA" value={aiMode.value} onChange={(m: AiMode) => setAiMode(m)} options={[['suscripcion', 'Mi suscripción de Claude'], ['apikey', 'Clave de la API']]} />
+        {aiMode.value === 'suscripcion' ? <>
+          <SubscriptionSettings />
         </> : <>
           <Callout tone="warn">La API de Anthropic <strong>no usa tu suscripción</strong>: se paga aparte con créditos en platform.claude.com. A cambio, todo es automático.</Callout>
           <Callout tone="info">La clave se guarda <strong>solo en este navegador</strong>: no va dentro del archivo de la app, no se sincroniza y no se incluye en las copias exportadas.</Callout>
@@ -151,6 +151,7 @@ export function SettingsPage() {
       </Panel>
       <InstallSettings />
       <AiSettings />
+      {!insideClaude && aiMode.value === 'suscripcion' && <UsagePanel />}
       <DataSettings />
     </Page>
   );
