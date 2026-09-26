@@ -15,7 +15,7 @@
     "preact": "^10.29.8"
   },
   "devDependencies": {
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
   },
   "private": true,
