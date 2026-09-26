@@ -73,7 +73,7 @@ jobs:
       # MAIL_USERNAME, MAIL_PASSWORD y MAIL_TO (ver README). Si no existen, este paso se omite.
       - name: Enviar correo
         if: steps.check.outputs.has_news == 'true' && env.MAIL_TO != ''
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v22
         with:
           server_address: ${{ secrets.MAIL_SERVER }}
           server_port: ${{ secrets.MAIL_PORT }}
