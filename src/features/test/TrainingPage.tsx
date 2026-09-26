@@ -1,7 +1,7 @@
 import { PendingSession } from './PendingSession';
 import { signal } from '@preact/signals';
 import { BLOCKS, TOPICS, topicsOfBlock } from '@/core/content';
-import { questionPool, type Filter, type Sources } from '@/core/domain/exam';
+import { defaultSources, questionPool, type Filter, type Sources } from '@/core/domain/exam';
 import { isExcluded, planFrame, topicStatus, weekTopics } from '@/core/store/selectors';
 import { onReset, useDocs } from '@/core/store/store';
 import { plural } from '@/core/utils/format';
@@ -18,7 +18,7 @@ const withTopics = (fn: (s: Set<string>) => void) => { const s = new Set(cfg.val
 
 export function TrainingPage() {
   const docs = useDocs();
-  const c = cfg.value, sources = c.sources ?? { O: true, M: true, I: docs.core.settings.ai };
+  const c = cfg.value, sources = c.sources ?? defaultSources(docs.core.settings.ai);
   const available = questionPool({ topics: [...c.topics], sources, filter: c.filter, srs: docs.srs.m, excluded: isExcluded }).length;
   const presetWeek = () => { const f = planFrame(), w = f.weeks[Math.max(0, Math.min(f.current, f.weeks.length - 1))]; const ids = w.phase === 2 ? w.review : weekTopics(w.i); if (!ids.length) toast('Esta semana no tiene temas asignados'); set({ topics: new Set(ids) }); };
 
@@ -54,6 +54,7 @@ export function TrainingPage() {
         {c.filter === 'weak' && <p class="u-muted u-small" style={{ margin: 'var(--space-3) 0 0' }}>Prioriza tus temas con peor porcentaje, lo que has fallado y lo pendiente de refuerzo.</p>}
         <div class="t-sources"><span class="c-field__label">Origen</span>
           <Checkbox checked={sources.O} onChange={v => set({ sources: { ...sources, O: v } })}>Oficiales del INAP</Checkbox>
+          <Checkbox checked={sources.P} onChange={v => set({ sources: { ...sources, P: v } })}>Exámenes anteriores (PreparaTIC)</Checkbox>
           <Checkbox checked={sources.M} onChange={v => set({ sources: { ...sources, M: v } })}>Curadas del material</Checkbox>
           <Checkbox checked={sources.I} onChange={v => set({ sources: { ...sources, I: v } })}>Generadas con IA</Checkbox>
         </div>

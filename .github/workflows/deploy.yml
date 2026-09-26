@@ -1,9 +1,9 @@
-# Compila la versión web (PWA) y la publica en GitHub Pages en cada push a main.
+# Compila la versión web (PWA) y la publica en GitHub Pages en cada push a la rama principal (master o main).
 name: Publicar en GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,39 @@
+{
+  "_comment": "Documentos de la biblioteca oficial que no vienen del repositorio del temario: aprobados, notas de corte, nombramientos y listas de interinos. build.mjs los añade a la convocatoria de su año. kind: exam (exámenes y corrección), results (aprobados y nombramientos) o interim (interinos). Revisado a mano el 2026-09-26.",
+  "years": {
+    "2024": [
+      { "kind": "exam", "label": "Respuestas mejor puntuadas del segundo ejercicio (nota de la CPS)", "url": "https://sede.inap.gob.es/sites/sede/files/public/2025-08/2025_07_29_NotainformativaGSI_M2O42G35CX_154AB89SD658.pdf" },
+      { "kind": "results", "label": "Aprobados del primer ejercicio (resolución)", "url": "https://sede.inap.gob.es/documents/59312/2364375/report_ResolucinsuperanprimerejercicioGestiones_JMPW9PMQYH_154AB89SD658.pdf/9521f909-a4c9-288d-d8d7-95b9e1e6c65b" },
+      { "kind": "results", "label": "Aprobados del primer ejercicio: acceso general", "url": "https://sede.inap.gob.es/documents/59312/2364375/1-GSI-L-DM-SUP_GEN_7Q4IJ1VWQP_154AB89SD658.pdf/3b2b208a-000f-93d2-59e7-9e3d0dff57c6" },
+      { "kind": "results", "label": "Aprobados del primer ejercicio: cupo de discapacidad", "url": "https://sede.inap.gob.es/documents/59312/2364375/1-GSI-L-DM-SUP_CRD_SC3U2CSJHL_154AB89SD658.pdf/3a179acb-656a-cd98-468e-e9ab3d8cb1ef" },
+      { "kind": "results", "label": "Notas de corte del primer ejercicio", "url": "https://sede.inap.gob.es/documents/59312/2364375/PUNTUACIONES+MINIMAS+1+EJER+GSI+L.pdf/0d64dcdb-b8ab-a3f9-a71b-5337ed03d559" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio (resolución)", "url": "https://sede.inap.gob.es/documents/59312/2364375/report_ResolucinsuperansegundoejercicioGSI-L_5B2UW3VTSE_154AB89SD658.pdf/73183936-d4f6-68fe-3d7e-69a330086880" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio: acceso general", "url": "https://sede.inap.gob.es/documents/59312/2364375/2-GSI-L-SUP_GEN_IYUK7JVX61_154AB89SD658.pdf/5ff5bd40-326d-cfbf-66e5-b3edacf04c53" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio: cupo de discapacidad", "url": "https://sede.inap.gob.es/documents/59312/2364375/2-GSI-L-SUP_CRD_85PPM1MA1S_154AB89SD658.pdf/0ee1cd82-0e28-b22d-6bdb-018e60df0246" },
+      { "kind": "results", "label": "Notas de corte del segundo ejercicio", "url": "https://sede.inap.gob.es/documents/59312/2364375/Puntuacionesminimassegundoejercicio2024GSI-L_5V20YAWD06_154AB89SD658.pdf/28aedb92-3fb0-7a7e-8d57-e8700824af64" },
+      { "kind": "results", "label": "Relación definitiva de aprobados (BOE, 18-06-2025)", "url": "https://boe.es/boe/dias/2025/06/18/pdfs/BOE-A-2025-12353.pdf" },
+      { "kind": "results", "label": "Nombramiento de funcionarios en prácticas", "url": "https://sede.inap.gob.es/sites/sede/files/public/2025-12/report_ResolucinNombprcticasGSIL20242_GLC8BAH20M_154AB89SD658.pdf" },
+      { "kind": "results", "label": "Funcionarios en prácticas: anexo con la relación", "url": "https://sede.inap.gob.es/sites/sede/files/public/2025-12/Anexonompracticas_AXTYM0508S_154AB89SD658.pdf" },
+      { "kind": "results", "label": "Nombramiento de funcionarios de carrera (BOE, 04-06-2026)", "url": "https://boe.es/boe/dias/2026/06/04/pdfs/BOE-A-2026-11953.pdf" },
+      { "kind": "interim", "label": "Resolución de la CPS que aprueba las listas de candidatos a interinos (29-07-2025)", "url": "https://mptmd.gob.es/content/dam/mpt/delegaciones_gobierno/delegaciones/canarias/proyecto-ci/lista_interinos/Resolucion_INAP_Interinos_OEP_2024.pdf.pdf" },
+      { "kind": "interim", "label": "Lista de interinos de Las Palmas y llamamientos", "url": "https://mptmd.gob.es/portal/delegaciones_gobierno/delegaciones/canarias/proyecto-ci/lista_interinos/interinos_laspalmas" },
+      { "kind": "interim", "label": "Lista de interinos de Santa Cruz de Tenerife y llamamientos", "url": "https://mptmd.gob.es/portal/delegaciones_gobierno/delegaciones/canarias/proyecto-ci/lista_interinos/interinos_sctenerife" },
+      { "kind": "interim", "label": "Cómo funcionan las listas: preguntas frecuentes (Delegación en Canarias)", "url": "https://mptmd.gob.es/content/dam/mpt/delegaciones_gobierno/delegaciones/canarias/proyecto-ci/lista_interinos/FAQS.pdf" },
+      { "kind": "interim", "label": "Procedimiento de las listas de interinos (Resolución de 7 de mayo de 2014)", "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2014-5443" }
+    ],
+    "2022": [
+      { "kind": "results", "label": "Aprobados del primer ejercicio (resolución)", "url": "https://sede.inap.gob.es/documents/59312/2194953/Resoluci%C3%B3n+superan+primer+ejercicio+Gestiones_2.pdf/693aba3a-282a-d3fd-5ae0-8c2847c484e2" },
+      { "kind": "results", "label": "Aprobados del primer ejercicio: acceso general", "url": "https://sede.inap.gob.es/documents/59312/2194953/1-GSI-L-DM-SUP_GE_Q3YA07SD6S_154AB89SD658.pdf/95570f3a-ec80-6a3d-a38e-4c8e8ca40a8a" },
+      { "kind": "results", "label": "Aprobados del primer ejercicio: cupo de discapacidad", "url": "https://sede.inap.gob.es/documents/59312/2194953/1-GSI-L-DM-SUP_CRD_C03IXPRUM4_154AB89SD658.pdf/aa3c1bfd-b7b4-ed6a-bc5d-346eb47b34ff" },
+      { "kind": "results", "label": "Notas de corte del primer ejercicio", "url": "https://sede.inap.gob.es/documents/59312/2194953/PUNTUACIONES+MINIMAS+1+EJER+GSI+L.pdf/5873accc-8f49-3497-58dd-924d837d6ce9" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio (resolución)", "url": "https://sede.inap.gob.es/documents/59312/2194953/2_ResolucinsuperansegundoejercicioGSIL_39C9I2EX2D_154AB89SD658.pdf/5775b670-65ac-9cad-b840-b52a50cc78b9" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio: acceso general", "url": "https://sede.inap.gob.es/documents/59312/2194953/3-2-GSI-L-SUP_GE_0L7IGSTFO6_154AB89SD658.pdf/f4ec0cb0-64e6-afd5-9b1c-cefe5270f78b" },
+      { "kind": "results", "label": "Aprobados del segundo ejercicio: cupo de discapacidad", "url": "https://sede.inap.gob.es/documents/59312/2194953/4-2-GSI-L-SUP_CRD_YXE75NYEH2_154AB89SD658.pdf/76a92bfa-068c-9774-9107-30df0b045d3c" },
+      { "kind": "results", "label": "Notas de corte del segundo ejercicio", "url": "https://sede.inap.gob.es/documents/59312/2194953/5-Puntuacionesminimassegundoejercicio2022GSI-L_35ZV7GBPLX_154AB89SD658.pdf/7f83b5d8-88a6-554c-abff-9c7a5c9a4510" },
+      { "kind": "results", "label": "Relación definitiva de aprobados (BOE, 27-04-2024)", "url": "https://www.boe.es/boe/dias/2024/04/27/pdfs/BOE-A-2024-8498.pdf" },
+      { "kind": "results", "label": "Corrección de errores de la relación de aprobados (BOE, 08-05-2024)", "url": "https://boe.es/boe/dias/2024/05/08/pdfs/BOE-A-2024-9194.pdf" },
+      { "kind": "results", "label": "Nombramiento de funcionarios en prácticas", "url": "https://sede.inap.gob.es/documents/59312/2194953/Publicacionpaginaweb_YGQ3RCO29P_154AB89SD658.pdf/ae2f901d-ce11-2f9a-9807-43666356be63" },
+      { "kind": "results", "label": "Nombramiento de funcionarios de carrera (BOE, 15-10-2024)", "url": "https://boe.es/boe/dias/2024/10/15/pdfs/BOE-A-2024-21008.pdf" }
+    ]
+  }
+}

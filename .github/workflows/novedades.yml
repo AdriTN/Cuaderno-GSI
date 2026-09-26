@@ -38,7 +38,7 @@ jobs:
         if: steps.check.outputs.has_news == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy.yml --ref main
+        run: gh workflow run deploy.yml --ref ${{ github.event.repository.default_branch }}
 
       # GitHub envía por correo los issues nuevos a quien vigila el repositorio (tú, por defecto).
       - name: Avisar con un issue

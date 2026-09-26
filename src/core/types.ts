@@ -1,7 +1,8 @@
 /** Modelo de contenido (generado por scripts/prepare_content.py) y de estado del usuario. */
 
 export type BlockId = 'B1' | 'B2' | 'B3' | 'B4';
-export type Origin = 'O' | 'M' | 'I';
+/** O: oficial INAP · P: examen anterior de GSI recopilado por PreparaTIC · M: curada del material · I: generada con IA. */
+export type Origin = 'O' | 'P' | 'M' | 'I';
 
 export interface Block { id: BlockId; n: number; title: string }
 export interface Topic { id: string; b: BlockId; n: number; title: string; sup: string }
@@ -9,15 +10,22 @@ export interface Question {
   i: string; t: string; o: Origin; s: string; a: string[]; c: number; f: string;
   /** Procedencia legible (documento y localización) de las preguntas no oficiales. */
   p?: string;
-  /** Solo preguntas oficiales: año, orden en el cuadernillo y si es de reserva. */
+  /** Preguntas de examen (oficiales y de PreparaTIC): año, orden en el cuadernillo y si es de reserva. */
   e?: string; n?: number; r?: 0 | 1;
+  /** Solo PreparaTIC: examen anterior del que procede (id de `pastExams`). */
+  x?: string;
 }
+/** Examen anterior de GSI (PreparaTIC) completo, en su orden; puede incluir preguntas que viven en otro examen. */
+export interface PastExam { id: string; label: string; year: string; turno: 'LI' | 'PI'; q: string[] }
 export interface OfficialCase { id: string; sim: number; opt: string; title: string; st: string; q: string[]; check: string[]; sol: string }
 export interface Pack { id: string; name: string; cuaderno?: string; solucionario?: string }
 export interface AutoCard { i: string; t: string; c: string; f: string; b: string; z?: 1 }
 export interface ContentUpdate { topics: string[]; title: string; summary: string; date: string }
 export interface InapCase { id: string; year: string; n: number; title: string; st: string; q: string[]; criteria: string }
-export interface LibraryEntry { year: number; status: string; page: string; docs: { label: string; url: string }[] }
+/** exam: exámenes y corrección · results: aprobados, notas de corte y nombramientos · interim: listas de interinos. */
+export type LibraryKind = 'exam' | 'results' | 'interim';
+export interface LibraryDoc { label: string; url: string; kind?: LibraryKind }
+export interface LibraryEntry { year: number; status: string; page: string; docs: LibraryDoc[] }
 export interface NewsItem { id: string; date: string; source: string; title: string; url: string }
 export interface Live { checked: string | null; news: NewsItem[]; library: { year: number | null; name: string; page: string; docs: { label: string; url: string }[] }[] }
 
@@ -26,6 +34,8 @@ export interface Content {
   cases: OfficialCase[]; officialCases: InapCase[]; library: LibraryEntry[]; key2025: { main: string; reserve: string; status: string };
   cards: AutoCard[]; packs: Pack[]; updates: ContentUpdate[];
   source: { program: string; repo_date: string };
+  /** Añadidos por build.mjs desde data/preparatic.json. */
+  pastExams: PastExam[]; preparatic?: { url: string; version: string | null; imported: string };
 }
 
 /* ---------- estado persistido (el formato es compatible con versiones anteriores) ---------- */

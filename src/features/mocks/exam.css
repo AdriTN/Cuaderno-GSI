@@ -4,8 +4,12 @@
 .e-card__year { font-family: var(--font-serif); font-size: 3.2rem; line-height: .9; color: var(--accent); letter-spacing: -.03em; }
 .e-card__title { font-size: var(--text-lg); margin-bottom: 4px; }
 .e-library { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); }
-.e-library ul { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
-.e-library a { display: inline-flex; gap: var(--space-2); align-items: center; text-decoration: none; font-size: var(--text-sm); }
+.e-library ul { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.e-library__group { margin-top: var(--space-4); }
+.e-library__kind { margin: 0; font-size: var(--text-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.e-library li { min-width: 0; overflow-wrap: anywhere; }
+.e-library a { display: inline-flex; gap: var(--space-2); align-items: flex-start; text-decoration: none; font-size: var(--text-sm); }
+.e-library a .c-icon { flex: none; margin-top: 1px; }
 .e-library a:hover { text-decoration: underline; }
 .o-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2) var(--space-4); }
 .o-q { display: flex; align-items: center; gap: var(--space-2); }

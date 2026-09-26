@@ -26,6 +26,7 @@ const PATHS = {
   layers: 'M12 4 3.5 8.5 12 13l8.5-4.5zM3.5 12.5 12 17l8.5-4.5M3.5 16.5 12 21l8.5-4.5',
   trash: 'M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7',
   download: 'M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14',
+  external: 'M13.5 5h5.5v5.5M19 5l-8 8M17 14v5H5V7h5',
   sync: 'M5 11a7 7 0 0 1 12.2-4.5L19.5 9M19 13a7 7 0 0 1-12.2 4.5L4.5 15M19.5 4.5V9H15M4.5 19.5V15H9',
 } as const;
 export type IconName = keyof typeof PATHS;

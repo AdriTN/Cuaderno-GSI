@@ -1,17 +1,17 @@
 import { PendingSession } from '../test/PendingSession';
 import { signal } from '@preact/signals';
-import { BLOCKS, CONTENT, LIBRARY, topicsOfBlock } from '@/core/content';
-import { EXAM_SECONDS, OFFICIAL_YEARS, SECONDS_PER_QUESTION, officialExam, randomMock, scoreAgainstKey } from '@/core/domain/exam';
+import { BLOCKS, CONTENT, LIBRARY, LIBRARY_KINDS, PAST_EXAMS, pastExamById, topicsOfBlock } from '@/core/content';
+import { EXAM_SECONDS, OFFICIAL_YEARS, SECONDS_PER_QUESTION, defaultSources, officialExam, pastExam, randomMock, scoreAgainstKey } from '@/core/domain/exam';
 import { isExcluded } from '@/core/store/selectors';
 import { onReset, useDocs } from '@/core/store/store';
 import { clock, num } from '@/core/utils/format';
-import { Button, Callout, Checkbox, Empty, Icon, LineChart, Page, PageHeader, Panel, Segmented, Tag } from '@/ui';
+import { Button, Callout, Checkbox, Dropdown, Empty, Icon, LineChart, Page, PageHeader, Panel, Segmented, Tag } from '@/ui';
 import { startTest } from '../test/session';
 import '../test/test.css';
 import './exam.css';
 import { NewsPanel } from './NewsPanel';
 
-const initial = () => ({ blocks: new Set(BLOCKS.map(b => b.id as string)), count: 50, minutes: 0, ai: null as boolean | null });
+const initial = () => ({ blocks: new Set(BLOCKS.map(b => b.id as string)), count: 50, minutes: 0, ai: null as boolean | null, past: PAST_EXAMS[0]?.id ?? '' });
 const custom = signal(initial());
 onReset(() => { custom.value = initial(); });
 
@@ -23,7 +23,11 @@ export function ExamPage() {
   const own = docs.core.ownExams['2025'];
   const ownScore = own ? scoreAgainstKey(own, CONTENT.key2025.main) : null;
   const seconds = c.minutes ? c.minutes * 60 : c.count * SECONDS_PER_QUESTION;
-  const startCustom = () => startTest({ topics: [...c.blocks].flatMap(b => topicsOfBlock(b).map(t => t.id)), count: c.count, mode: 'exam', limit: seconds, sources: { O: true, M: true, I: ai }, label: `Examen a medida (${c.count})`, kind: 'exam' });
+  const past = pastExamById[c.past];
+  const pastIds = past ? pastExam(past.id) : [];
+  const pastLabel = past ? `Examen anterior: ${past.label}` : '';
+  const pastBest = past ? best(pastLabel) : null;
+  const startCustom = () => startTest({ topics: [...c.blocks].flatMap(b => topicsOfBlock(b).map(t => t.id)), count: c.count, mode: 'exam', limit: seconds, sources: defaultSources(ai), label: `Examen a medida (${c.count})`, kind: 'exam' });
 
   return (
     <Page>
@@ -47,6 +51,19 @@ export function ExamPage() {
           <Checkbox checked={ai} onChange={v => (custom.value = { ...c, ai: v })}>Incluir preguntas generadas con IA</Checkbox>
           <Button variant="primary" icon="play" onClick={() => startTest({ qids: randomMock(ai, isExcluded), mode: 'exam', limit: EXAM_SECONDS, label: 'Simulacro aleatorio', kind: 'sim' })}>Empezar</Button>
         </Panel>
+        {past && (
+          <Panel title="Exámenes anteriores" subtitle={`${PAST_EXAMS.length} exámenes de GSI de la AGE (acceso libre y promoción interna), completos y en su orden.`}>
+            <div class="u-stack" style={{ gap: 'var(--space-3)' }}>
+              <Dropdown label="Examen anterior" block searchable value={past.id} onChange={id => (custom.value = { ...c, past: id })}
+                options={PAST_EXAMS.map(e => ({ value: e.id, label: e.label, hint: `${e.q.length} preguntas` }))} />
+              <div class="u-spread">
+                <span class="u-small">{pastBest !== null ? <>Tu mejor marca: <strong>{num(pastBest)} netos</strong></> : `${pastIds.length} preguntas`}</span>
+                <Button variant="primary" icon="play" disabled={!pastIds.length} onClick={() => startTest({ qids: pastIds, mode: 'exam', limit: pastIds.length * SECONDS_PER_QUESTION, label: pastLabel, kind: 'sim' })}>Empezar ({clock(pastIds.length * SECONDS_PER_QUESTION)})</Button>
+              </div>
+              <p class="u-muted u-small" style={{ margin: 0 }}>Preguntas y claves de <a href={CONTENT.preparatic?.url ?? 'https://www.preparatic.org/tests/'} target="_blank" rel="noopener">PreparaTIC</a>, grupo altruista de preparación de las oposiciones TIC. El tema del programa actual se asigna automáticamente y, en los exámenes antiguos, la normativa o la técnica pueden haber cambiado.</p>
+            </div>
+          </Panel>
+        )}
         <Panel title="Examen a medida" subtitle="Elige bloques, número de preguntas y duración.">
           <div class="u-stack" style={{ gap: 'var(--space-3)' }}>
             <div>{BLOCKS.map(b => <Checkbox checked={c.blocks.has(b.id)} onChange={v => { const s = new Set(c.blocks); v ? s.add(b.id) : s.delete(b.id); custom.value = { ...c, blocks: s }; }}>Bloque {b.n}. {b.title}</Checkbox>)}</div>
@@ -65,12 +82,21 @@ export function ExamPage() {
         </> : <Empty title="Aún no hay simulacros">Haz el examen oficial de 2024 para tener tu punto de partida.</Empty>}
       </Panel>
       <NewsPanel />
-      <Panel title="Biblioteca oficial del INAP" subtitle="Cuestionarios, plantillas, supuestos y criterios. Los documentos nuevos que publique el INAP se añaden solos.">
+      <Panel title="Biblioteca oficial" subtitle="Exámenes, plantillas y criterios; aprobados, notas de corte y nombramientos; y listas de interinos. Los documentos nuevos que publique el INAP se añaden solos.">
         <div class="e-library">{LIBRARY.map(l => (
           <div class="e-library__year">
-            <div class="u-spread"><strong>Convocatoria {l.year}</strong>{l.status === 'provisional' ? <Tag tone="warn">Plantilla provisional</Tag> : <Tag tone="ok">Plantilla definitiva</Tag>}</div>
-            <ul>{l.docs.map(d => <li><a href={d.url} target="_blank" rel="noopener"><Icon name="download" size={16} />{d.label}</a>{(d as any).isNew && <> <Tag tone="mark">Nuevo</Tag></>}</li>)}</ul>
+            <div class="u-spread"><strong>Convocatoria {l.year}</strong>{l.status === 'provisional' ? <Tag tone="warn">Plantilla provisional</Tag> : l.status === 'definitive' ? <Tag tone="ok">Plantilla definitiva</Tag> : null}</div>
+            {LIBRARY_KINDS.map(({ kind, title }) => {
+              const docs = l.docs.filter(d => d.kind === kind);
+              return docs.length > 0 && (
+                <section class="e-library__group" aria-label={`${title}, convocatoria ${l.year}`}>
+                  <h3 class="e-library__kind">{title}</h3>
+                  <ul>{docs.map(d => <li><a href={d.url} target="_blank" rel="noopener"><Icon name={/\.pdf(\/|$)/i.test(d.url) ? 'download' : 'external'} size={16} />{d.label}</a>{d.isNew && <> <Tag tone="mark">Nuevo</Tag></>}</li>)}</ul>
+                </section>
+              );
+            })}
           </div>))}</div>
+        <p class="u-muted u-small" style={{ margin: 'var(--space-4) 0 0' }}>Las listas de interinos las aprueba la Comisión Permanente de Selección con quienes se presentaron y no obtuvieron plaza, y cada Delegación o Subdelegación del Gobierno publica la de su provincia (aquí, las de Canarias). Cada convocatoria nueva sustituye a la anterior.</p>
       </Panel>
     </Page>
   );

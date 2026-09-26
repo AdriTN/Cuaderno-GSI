@@ -18,6 +18,8 @@ interfaz está en español de España y se dirige al usuario de «tú».
 - `src/ui/`: sistema de diseño propio (Button, Panel, Dropdown, DatePicker, NumberField, Modal, confirmDialog…).
 - `src/features/<sección>/`: páginas y estado efímero de cada sección.
 - `data/content.json`: contenido generado (no editar a mano); `data/live.json`: novedades (lo escribe el vigilante).
+- `data/preparatic.json` (generado con `npm run preparatic`), `data/preparatic-map.json` y `data/library-extra.json`:
+  contenido propio que `build.mjs` añade al generado (exámenes A2 de PreparaTIC y documentos extra de la biblioteca).
 
 ## Normas
 

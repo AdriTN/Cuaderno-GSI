@@ -4,7 +4,7 @@
 import { signal } from '@preact/signals';
 import { navigate } from '@/app/router';
 import { questionById, topicById } from '@/core/content';
-import { EXAM_SECONDS, SECONDS_PER_QUESTION, pickAdaptive, questionPool, type Filter, type Sources } from '@/core/domain/exam';
+import { EXAM_SECONDS, SECONDS_PER_QUESTION, defaultSources, pickAdaptive, questionPool, type Filter, type Sources } from '@/core/domain/exam';
 import type { QuestionResult } from '@/core/domain/srs';
 import { netScore } from '@/core/domain/stats';
 import { answerQuestion, logActivity, logStudyTime, recordTest, saveAnswers } from '@/core/store/actions';
@@ -54,7 +54,7 @@ export function startTest(o: StartOptions) {
   let qs: Question[];
   if (o.qids) qs = o.qids.map(id => questionById[id]).filter(Boolean);
   else {
-    const sources = o.sources ?? { O: true, M: true, I: docs.core.settings.ai };
+    const sources = o.sources ?? defaultSources(docs.core.settings.ai);
     const base = { topics: o.topics ?? [], sources, srs: docs.srs.m, excluded: isExcluded };
     let pool = questionPool({ ...base, filter: o.filter ?? 'all' });
     if (!pool.length && o.filter && o.filter !== 'all') pool = questionPool({ ...base, filter: 'all' });

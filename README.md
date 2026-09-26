@@ -10,8 +10,9 @@ App de estudio para la oposición al Cuerpo de Gestión de Sistemas e Informáti
 - **Entrenamiento**: por bloques y temas, no vistas, últimos errores o puntos débiles (adaptativo);
   corrección inmediata con explicación y procedencia; temas a reforzar al terminar.
 - **Refuerzo**: errores y dudas programados con repetición espaciada.
-- **Examen**: oficiales INAP 2022 y 2024, simulacro aleatorio, examen a medida, corrección de tu
-  examen de 2025 con la plantilla provisional y biblioteca de PDF oficiales.
+- **Examen**: oficiales INAP 2022 y 2024, exámenes anteriores de GSI (PreparaTIC), simulacro aleatorio,
+  examen a medida, corrección de tu examen de 2025 con la plantilla provisional y biblioteca oficial
+  (exámenes, aprobados, notas de corte, nombramientos y listas de interinos).
 - **Supuestos**: 6 oficiales del INAP (2022-2025), 8 del material y generados con IA, con
   cronómetro por pregunta y corrección con la rúbrica del tribunal.
 - **Cuadernos prácticos**, **Progreso**, **Plan** reprogramable y **Ajustes**.
@@ -29,13 +30,36 @@ npm run preview      # compila la versión web y la sirve en http://localhost:80
 npm run dev          # recompila al guardar
 npm run typecheck    # comprobación de tipos (tsc --noEmit)
 npm run content -- ../Preparacion-GSI   # regenera data/content.json desde el repositorio del temario
+npm run preparatic   # actualiza data/preparatic.json con los exámenes A2 de PreparaTIC
 ```
+
+## Contenido propio de este repositorio
+
+`data/content.json` se genera desde el repositorio del temario y no se edita a mano. `build.mjs` le añade:
+
+- **`data/preparatic.json`**: exámenes anteriores del Cuerpo de Gestión de Sistemas e Informática (A2) de la
+  AGE, acceso libre y promoción interna, recopilados por [PreparaTIC](https://www.preparatic.org/tests/).
+  Solo se importan los exámenes cuyo título empieza por «A2 AGE»: nada del temario A1 ni de otros cuerpos.
+  Los exámenes que ya están en la app como oficiales del INAP (2022 y 2024) se detectan y no se duplican.
+  Las preguntas aparecen en Entrenamiento con el origen *PreparaTIC* y cada examen se puede hacer completo
+  desde *Examen → Exámenes anteriores*.
+- **`data/preparatic-map.json`**: equivalencias entre los 133 temas de PreparaTIC (temario A1) y los temas
+  GSI. El importador elige entre los candidatos el que más se parece al texto de cada pregunta y comprueba la
+  asignación con las preguntas oficiales ya clasificadas. Si una pregunta cae en un tema que no toca, ajusta
+  aquí sus candidatos y vuelve a ejecutar `npm run preparatic` (con `-- --cache .cache/preparatic` no se
+  vuelve a descargar nada).
+- **`data/library-extra.json`**: documentos de la biblioteca oficial que no vienen del temario: aprobados de
+  cada ejercicio, notas de corte, relación definitiva, nombramientos y listas de interinos (resolución de la
+  Comisión Permanente de Selección y listas de Las Palmas y Santa Cruz de Tenerife).
+
+`npm run preparatic` necesita Node 18 o superior y conexión con preparatic.org. Muestra un resumen: preguntas
+nuevas, repetidas, claves que no coinciden con las oficiales y el porcentaje de acierto del tema asignado.
 
 ## Publicar en GitHub Pages
 
-1. Crea un repositorio en GitHub y sube este proyecto a la rama `main`.
+1. Crea un repositorio en GitHub y sube este proyecto a su rama principal (`master` o `main`).
 2. En el repositorio: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Cada push a `main` ejecuta `.github/workflows/deploy.yml`: comprueba tipos, compila la versión web
+3. Cada push a esa rama ejecuta `.github/workflows/deploy.yml`: comprueba tipos, compila la versión web
    y la publica en `https://<tu-usuario>.github.io/<repositorio>/`.
 
 La versión web incluye manifiesto, iconos y un service worker: se puede instalar en el móvil como una

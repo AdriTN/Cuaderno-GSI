@@ -45,7 +45,7 @@ export function RunPage() {
     <Page class="t-run">
       <div class="t-top"><span class="t-top__label">{s.label}</span><span class="u-row">{s.limit > 0 && <Countdown />}<span class="u-muted">Pregunta {s.i + 1} de {s.qs.length}</span></span></div>
       <div class="t-progress" role="progressbar" aria-valuenow={progress} aria-valuemax={s.qs.length}><span style={{ width: `${(100 * progress) / s.qs.length}%` }} /></div>
-      <div class="t-meta"><Tag tone={q.o === 'O' ? 'ok' : q.o === 'I' ? 'warn' : 'neutral'}>{ORIGIN_LABEL[q.o]}{q.e ? ` ${q.e}` : ''}</Tag><span>{topicCode(q.t)}. {truncate(topicById[q.t].title, 90)}</span></div>
+      <div class="t-meta"><Tag tone={q.o === 'O' ? 'ok' : q.o === 'P' ? 'accent' : q.o === 'I' ? 'warn' : 'neutral'}>{ORIGIN_LABEL[q.o]}{q.e ? ` ${q.e}` : ''}</Tag><span>{topicCode(q.t)}. {truncate(topicById[q.t].title, 90)}</span></div>
       <p class="t-question">{q.s}</p>
       {!revealed && <button class="t-doubt" aria-pressed={s.doubt[s.i]} onClick={toggleDoubt} title="Tecla X">{s.doubt[s.i] ? 'Marcada con duda' : '¿Dudas? Márcalo antes de responder'}</button>}
       <div class="t-options" role="group" aria-label="Opciones">

@@ -1,9 +1,11 @@
-import { BLOCKS, QUESTIONS, TOPICS, topicById } from '../content';
+import { BLOCKS, QUESTIONS, TOPICS, pastExamById, questionById, topicById } from '../content';
 import type { Origin, Question, SrsEntry } from '../types';
 import { shuffle, weightedSample } from '../utils/random';
 import { topicStats } from './stats';
 
 export type Sources = Record<Origin, boolean>;
+/** Orígenes por defecto: todo menos lo generado con IA, que depende del ajuste. */
+export const defaultSources = (ai: boolean): Sources => ({ O: true, P: true, M: true, I: ai });
 export type Filter = 'all' | 'weak' | 'new' | 'fail';
 export const SECONDS_PER_QUESTION = 54;
 export const EXAM_SECONDS = 5400;
@@ -39,6 +41,8 @@ export function officialExam(year: string): string[] {
   const reserve = all.filter(q => q.r).sort((a, b) => (a.n ?? 0) - (b.n ?? 0));
   return [...main, ...reserve.slice(0, Math.max(0, 100 - main.length))].map(q => q.i);
 }
+/** Examen anterior de PreparaTIC completo y en su orden. */
+export const pastExam = (id: string): string[] => (pastExamById[id]?.q ?? []).filter(q => questionById[q]);
 export const OFFICIAL_YEARS = [...new Set(QUESTIONS.filter(q => q.o === 'O').map(q => q.e!))].sort().reverse();
 
 /** Simulacro aleatorio de 100 preguntas con cuotas por bloque proporcionales a su nº de temas. */
