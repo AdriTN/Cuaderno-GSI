@@ -64,6 +64,21 @@ instalada se actualiza sola la siguiente vez que se abre con conexión.
 No existe una forma oficial de que una web externa use una suscripción de Claude: por eso fuera de Claude
 se usa el puente de copiar y pegar, o la API con clave propia (guardada solo en el navegador).
 
+## Agente de Claude con tu suscripción
+
+`.github/workflows/claude.yml` usa la GitHub Action oficial de Claude Code con tu suscripción Pro o Max
+(sin API ni pagos extra; el uso cuenta en los límites de tu plan):
+
+1. Instala Claude Code en tu equipo y ejecuta `claude setup-token`; copia el token que genera.
+2. En el repositorio: *Settings → Secrets and variables → Actions → New repository secret*, con nombre
+   `CLAUDE_CODE_OAUTH_TOKEN` y el token como valor.
+3. Instala la app de GitHub de Claude en el repositorio: https://github.com/apps/claude
+4. Escribe `@claude` en un issue o comentario con lo que quieras («añade…», «corrige…»). Solo responde al
+   propietario del repositorio.
+
+Con el mismo secreto, el aviso diario de novedades incluye una explicación de Claude sobre qué supone cada
+una. `CLAUDE.md` resume la arquitectura y las normas para que el agente trabaje con el contexto correcto.
+
 ## Novedades automáticas de la oposición
 
 `.github/workflows/novedades.yml` se ejecuta cada mañana y lanza `scripts/check_updates.py`, que revisa:
