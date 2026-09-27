@@ -81,5 +81,12 @@ export interface Docs {
   cases: { u: number; e?: number; m: Record<string, CaseState> };
   cards: { u: number; e?: number; m: Record<string, SrsEntry>; own: Record<string, OwnCard> };
   gen: { u: number; e?: number; m: Record<string, GeneratedCase> };
+  /** Estado en curso que también viaja entre dispositivos: el test o examen a medias y la última novedad vista. */
+  misc: { u: number; e?: number; cur: StoredSession | null; news: string };
 }
 export type DocKey = keyof Docs;
+/** Test o examen sin terminar, guardado por identificadores de pregunta; `at` es su último cambio. */
+export interface StoredSession {
+  qids: string[]; ans: number[]; doubt: boolean[]; flag: boolean[]; time: number[]; revealed: boolean[];
+  i: number; mode: 'practice' | 'exam'; label: string; kind: string; startedAt: number; limit: number; at: number;
+}

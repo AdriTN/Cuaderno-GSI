@@ -1,16 +1,17 @@
 /**
- * Sesión de test en curso (estado efímero, no persistido). La UI lee `session` y llama a estas funciones.
+ * Sesión de test en curso. La UI lee `session` y llama a estas funciones; se guarda y sincroniza en `docs.misc.cur`.
  */
 import { signal } from '@preact/signals';
-import { navigate } from '@/app/router';
+import { navigate, route } from '@/app/router';
 import { questionById, topicById } from '@/core/content';
 import { EXAM_SECONDS, SECONDS_PER_QUESTION, defaultSources, pickAdaptive, questionPool, type Filter, type Sources } from '@/core/domain/exam';
 import type { QuestionResult } from '@/core/domain/srs';
 import { netScore } from '@/core/domain/stats';
 import { answerQuestion, logActivity, logStudyTime, recordTest, saveAnswers } from '@/core/store/actions';
 import { isExcluded } from '@/core/store/selectors';
-import { docs, onReset } from '@/core/store/store';
-import type { HistEntry, Question } from '@/core/types';
+import { commit, docs, onReset } from '@/core/store/store';
+import { onPulled } from '@/core/store/sync';
+import type { HistEntry, Question, StoredSession } from '@/core/types';
 import { today, todayISO } from '@/core/utils/date';
 import { shuffle } from '@/core/utils/random';
 import { toast } from '@/ui';
@@ -23,25 +24,60 @@ export interface Session {
   i: number; mode: Mode; label: string; kind: string; startedAt: number; qStartedAt: number; limit: number;
   done: boolean; result?: HistEntry;
 }
-/** El test en curso se guarda en el navegador para no perderlo al recargar (clave aparte de los datos sincronizados). */
-const LS_KEY = 'cuaderno-gsi-session';
-export const session = signal<Session | null>(restore());
-onReset(() => { session.value = null; });
+/**
+ * El test en curso se guarda en el documento sincronizado `misc` (sin las preguntas, solo sus identificadores):
+ * sobrevive a recargas y puedes seguirlo en otro dispositivo. En los exámenes el reloj corre en tiempo real,
+ * como en el examen de verdad: si lo retomas más tarde, cuenta el tiempo que ha pasado.
+ */
+const OLD_LS_KEY = 'cuaderno-gsi-session'; // versiones anteriores lo guardaban solo en este navegador
 
+function fromStored(raw: StoredSession | null | undefined): Session | null {
+  if (!raw?.qids?.length) return null;
+  const qs = raw.qids.map((id: string) => questionById[id]).filter(Boolean);
+  if (qs.length !== raw.qids.length) return null;
+  const { qids, at, ...rest } = raw;
+  return { ...rest, qs, qStartedAt: Date.now(), done: false };
+}
+function toStored(s: Session): StoredSession {
+  return { qids: s.qs.map(q => q.i), ans: s.ans, doubt: s.doubt, flag: s.flag, time: s.time, revealed: s.revealed,
+    i: s.i, mode: s.mode, label: s.label, kind: s.kind, startedAt: s.startedAt, limit: s.limit, at: Date.now() };
+}
 function restore(): Session | null {
   try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) ?? 'null');
-    if (!raw?.qids?.length) return null;
-    const qs = raw.qids.map((id: string) => questionById[id]).filter(Boolean);
-    if (qs.length !== raw.qids.length) return null;
-    return { ...raw, qs, qStartedAt: Date.now(), done: false };
-  } catch { return null; }
+    const old = localStorage.getItem(OLD_LS_KEY);
+    if (old) { localStorage.removeItem(OLD_LS_KEY); if (!docs.misc.cur) { const { qids, ...r } = JSON.parse(old); docs.misc.cur = { qids, ...r, at: Date.now() }; commit('misc'); } }
+  } catch { /* copia antigua ilegible: se ignora */ }
+  return fromStored(docs.misc.cur);
 }
+
+export const session = signal<Session | null>(restore());
+
+/** Firma de lo que importa guardar: evita escribir (y sincronizar) si nada ha cambiado. */
+const fingerprint = (s: Session | null) => (s && !s.done ? JSON.stringify([s.qs.length, s.ans, s.doubt, s.flag, s.revealed, s.i, s.startedAt]) : '');
+let saved = fingerprint(session.peek());
+let applyingRemote = false;
+// Borrar o importar: se descarta el test en memoria sin escribirlo (los documentos ya se sustituyen enteros).
+onReset(() => { applyingRemote = true; session.value = null; saved = ''; applyingRemote = false; });
 session.subscribe(s => {
-  try {
-    if (!s || s.done) localStorage.removeItem(LS_KEY);
-    else { const { qs, ...rest } = s; localStorage.setItem(LS_KEY, JSON.stringify({ ...rest, qids: qs.map(q => q.i) })); }
-  } catch { /* sin espacio: no pasa nada, el test sigue en memoria */ }
+  if (applyingRemote) return;
+  const f = fingerprint(s);
+  if (f === saved) return;
+  saved = f;
+  docs.misc.cur = s && !s.done ? toStored(s) : null;
+  commit('misc');
+});
+
+/** Al traer datos de otro dispositivo: si allí se avanzó (o se terminó) el test, se continúa desde ahí. */
+onPulled(() => {
+  const remote = docs.misc.cur, local = session.peek();
+  if (local?.done) return;                                   // estás viendo un resultado: no se toca
+  const localFp = fingerprint(local), next = fromStored(remote);
+  if (fingerprint(next) === localFp) return;
+  applyingRemote = true;
+  session.value = next;
+  saved = fingerprint(next);
+  applyingRemote = false;
+  if (!next && local && route.peek().name === 'run') { toast('Terminaste este test en otro dispositivo'); navigate('entrenamiento'); }
 });
 export const activeSession = () => (session.value && !session.value.done ? session.value : null);
 export const discard = () => { session.value = null; };

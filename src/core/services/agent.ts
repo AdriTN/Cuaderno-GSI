@@ -1,5 +1,6 @@
 /**
- * Cliente del agente en GitHub (repositorio privado con agente/.github/workflows/ia.yml).
+ * Cliente del agente en GitHub: repositorio privado con el contenido de la carpeta agente/ en su raíz
+ * (el workflow debe quedar en .github/workflows/ia.yml).
  * La consulta se sube como archivo a requests/, el workflow la responde en responses/ y aquí se recoge.
  */
 import { connections } from './connections';
@@ -8,11 +9,11 @@ export class AgentError extends Error { constructor(message: string, public code
 const API = 'https://api.github.com';
 const repoPath = () => { const a = connections.value.agent; return `${API}/repos/${encodeURIComponent(a.owner)}/${encodeURIComponent(a.repo)}`; };
 const headers = () => ({ Authorization: `Bearer ${connections.value.agent.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
-const toB64 = (s: string) => { const bytes = new TextEncoder().encode(s); let bin = ''; bytes.forEach(b => (bin += String.fromCharCode(b))); return btoa(bin); };
-const fromB64 = (s: string) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
+export const toB64 = (s: string) => { const bytes = new TextEncoder().encode(s); let bin = ''; bytes.forEach(b => (bin += String.fromCharCode(b))); return btoa(bin); };
+export const fromB64 = (s: string) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-async function gh(path: string, init: RequestInit = {}) {
+export async function gh(path: string, init: RequestInit = {}) {
   let r: Response;
   try { r = await fetch(repoPath() + path, { ...init, headers: { ...headers(), ...(init.headers ?? {}) } }); }
   catch { throw new AgentError('Sin conexión con GitHub.', 'network'); }
@@ -21,16 +22,46 @@ async function gh(path: string, init: RequestInit = {}) {
   return r;
 }
 
-/** Comprueba que el repositorio existe, es PRIVADO y el token puede escribir en él. */
-export async function checkAgent(): Promise<string> {
+/** Comprueba que el repositorio existe, es PRIVADO y el token puede escribir en él (lo necesitan el agente y la sincronización). */
+export async function checkRepo(): Promise<{ full_name: string; default_branch: string }> {
   const r = await gh('');
   if (r.status === 404) throw new AgentError('No se encuentra el repositorio. Revisa el usuario, el nombre y que el token tenga acceso a él.', 'missing');
   const repo = await r.json();
-  if (!repo.private) throw new AgentError('El repositorio es público: cualquiera vería tus consultas y respuestas. Hazlo privado en Settings → General → Danger Zone.', 'public');
+  if (!repo.private) throw new AgentError('El repositorio es público: cualquiera vería tus datos. Hazlo privado en Settings → General → Danger Zone.', 'public');
   if (repo.permissions && !repo.permissions.push) throw new AgentError('El token solo puede leer el repositorio; necesita permiso de escritura en «Contents».', 'forbidden');
+  return repo;
+}
+
+/** Además del repositorio, el agente necesita su workflow. */
+export async function checkAgent(): Promise<string> {
+  const repo = await checkRepo();
   const wf = await gh('/contents/.github/workflows/ia.yml');
-  if (wf.status === 404) throw new AgentError('Falta el workflow .github/workflows/ia.yml en el repositorio. Sube el contenido de la carpeta «agente».', 'workflow');
+  if (wf.status === 404) throw new AgentError(await missingWorkflowHint(repo.default_branch), 'workflow');
   return repo.full_name;
+}
+
+/**
+ * GitHub solo ejecuta los workflows que están en .github/workflows/ en la RAÍZ del repositorio.
+ * Explica qué pasa con lo que hay subido: los dos errores típicos son subir la carpeta «agente» entera
+ * (queda en agente/.github/…) o arrastrar los archivos en la web de GitHub, que no sube la carpeta oculta .github.
+ */
+async function missingWorkflowHint(branch: string): Promise<string> {
+  const base = 'GitHub solo ejecuta el workflow si está en .github/workflows/ia.yml en la raíz del repositorio';
+  try {
+    const r = await gh(`/git/trees/${encodeURIComponent(branch)}?recursive=1`);
+    if (r.ok) {
+      const paths: string[] = ((await r.json()).tree ?? []).map((x: { path: string }) => x.path);
+      const nested = paths.find(p => p.endsWith('.github/workflows/ia.yml'));
+      if (nested) {
+        const folder = nested.slice(0, -'/.github/workflows/ia.yml'.length);
+        return `${base}, y en el tuyo está dentro de la carpeta «${folder}». Mueve el contenido de «${folder}» (incluida la carpeta oculta .github) a la raíz del repositorio.`;
+      }
+      if (paths.some(p => p === 'procesar.mjs' || p.endsWith('/procesar.mjs'))) {
+        return `${base}, y en el tuyo falta la carpeta oculta .github. Suele pasar al arrastrar los archivos a la web de GitHub: súbela con Git o créala a mano con «Add file → Create new file» y el nombre .github/workflows/ia.yml.`;
+      }
+    }
+  } catch { /* sin detalle: mensaje general */ }
+  return `${base}. Sube a la raíz el contenido de la carpeta «agente», incluida la carpeta oculta .github.`;
 }
 
 async function readFile(path: string): Promise<{ json: any; sha: string } | null> {

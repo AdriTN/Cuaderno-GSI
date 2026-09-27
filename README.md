@@ -73,8 +73,15 @@ instalada se actualiza sola la siguiente vez que se abre con conexión.
 
 ### Datos y privacidad en la versión web
 
-- El progreso se guarda en el navegador del dispositivo (no hay nube fuera de Claude). Para moverlo,
-  *Ajustes → Exportar copia* e *Importar copia*.
+- El progreso se guarda en el navegador del dispositivo. Para tenerlo en todos tus dispositivos, activa
+  *Ajustes → Tus datos → Sincronizar entre dispositivos*: se guarda en la carpeta `sync/` del repositorio
+  **privado** del agente (ver más abajo), con su mismo token. Es gratis y los datos no salen de tu cuenta de
+  GitHub. En el primer dispositivo se sube lo que tengas; en los demás se trae (si los dos lados tienen
+  progreso, eliges cuál se queda). Los cambios se suben cada 20 segundos y al salir de la app, y al volver a
+  abrirla se traen los de los otros dispositivos. Si usas dos dispositivos a la vez, en cada tipo de dato
+  (progreso, repaso, notas, tarjetas…) se combinan los cambios de los dos. También viajan el test o examen
+  que tengas a medias (lo empiezas en el PC y lo sigues en el móvil) y las novedades que ya has visto.
+- Sin sincronización, *Ajustes → Exportar copia* e *Importar copia* siguen sirviendo para moverlo a mano.
 - El repositorio y la web publicada no contienen ninguna clave ni dato personal.
 
 ## Inteligencia artificial con tu suscripción de Claude (sin API)

@@ -7,6 +7,8 @@ import { uid } from '../utils/random';
 import { DOC_KEYS } from './defaults';
 import { topicStatus } from './selectors';
 import { commit, docs, emitReset, replaceDoc } from './store';
+import { clearConnections } from '../services/connections';
+import { stopGithubSync } from './sync';
 
 const trimKeys = (o: Record<string, unknown>, max: number) => { const k = Object.keys(o).sort(); while (k.length > max) delete o[k.shift()!]; };
 
@@ -105,6 +107,10 @@ export function importData(json: string) {
 }
 /** Borra todo: primero se detienen cronómetros y sesiones en memoria para que no escriban después. */
 export function resetAll() {
+  // «Borrar todo» también olvida las conexiones de este navegador (puente, agente y sincronización con GitHub):
+  // tu progreso guardado en GitHub no se toca, y puedes recuperarlo volviendo a activar la sincronización.
+  void stopGithubSync(false); // se corta antes de borrar: el borrado no se sube
+  clearConnections();
   emitReset();
   const epoch = Date.now();
   for (const k of DOC_KEYS) { replaceDoc(k, null, true); docs[k].e = epoch; }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { checkAgent } from '@/core/services/agent';
+import { stopGithubSync } from '@/core/store/sync';
 import { bridgeStatus, forgetBridgeStatus, type BridgeStatus } from '@/core/services/bridge';
 import { agentConfigured, bridgeConfigured, connections, DEFAULT_BRIDGE_URL, saveConnections } from '@/core/services/connections';
 import { refreshUsage, usage, usageError, usageLoading, type Window } from '@/core/services/usage';
@@ -89,7 +90,10 @@ function AgentCard() {
   const [owner, setOwner] = useState(a.owner), [repo, setRepo] = useState(a.repo), [token, setToken] = useState(a.token);
   const [state, setState] = useState<{ ok: boolean; text: string } | null>(null), [busy, setBusy] = useState(false);
   const save = async () => {
-    saveConnections({ ...connections.value, agent: { owner: owner.trim(), repo: repo.trim(), token: token.trim() } });
+    const prev = connections.value.agent, next = { owner: owner.trim(), repo: repo.trim(), token: token.trim() };
+    // Si cambia el repositorio, la sincronización no debe seguir escribiendo en el nuevo sin que lo actives tú.
+    if (prev.sync && (prev.owner !== next.owner || prev.repo !== next.repo)) await stopGithubSync();
+    saveConnections({ ...connections.value, agent: { ...connections.value.agent, ...next } });
     setBusy(true);
     try { const name = await checkAgent(); setState({ ok: true, text: `Conectado a ${name} (privado).` }); toast('Agente conectado'); }
     catch (e: any) { setState({ ok: false, text: e.message }); }
@@ -106,7 +110,7 @@ function AgentCard() {
         <Field label="Token de GitHub"><Input type="password" value={token} autoComplete="off" onInput={e => setToken((e.target as HTMLInputElement).value)} placeholder="github_pat_…" /></Field>
       </div>
       <div class="u-row"><Button variant="primary" size="sm" icon="check" disabled={busy || !owner.trim() || !repo.trim() || !token.trim()} onClick={save}>{busy ? 'Comprobando…' : 'Guardar y probar'}</Button>
-        {a.token && <Button size="sm" variant="ghost" onClick={() => { saveConnections({ ...connections.value, agent: { owner: '', repo: 'cuaderno-gsi-agente', token: '' } }); setToken(''); setState(null); }}>Desconectar</Button>}</div>
+        {a.token && <Button size="sm" variant="ghost" onClick={async () => { await stopGithubSync(); saveConnections({ ...connections.value, agent: { owner: '', repo: 'cuaderno-gsi-agente', token: '' } }); setToken(''); setState(null); }}>Desconectar</Button>}</div>
       <details class="ai-card__help"><summary>Cómo ponerlo en marcha</summary>
         <ol>
           <li>Crea un repositorio <strong>privado</strong> llamado <code>cuaderno-gsi-agente</code> y sube el contenido de la carpeta <code>agente</code> del proyecto.</li>
@@ -127,7 +131,7 @@ export function SubscriptionSettings() {
       <AgentCard />
       <div class="ai-card ai-card--muted"><div class="ai-card__head"><div><span class="ai-card__step">3</span><strong>Copiar y pegar en Claude</strong><span class="u-muted u-small"> · siempre disponible</span></div></div>
         <p class="u-small u-muted" style={{ margin: 0 }}>Si no hay puente ni agente, la app prepara la consulta para que la pegues en claude.ai y traigas la respuesta.</p></div>
-      <Callout tone="info">Las conexiones se guardan solo en este navegador: no están en la web publicada, no se sincronizan y no van en las copias exportadas.</Callout>
+      <Callout tone="info">Las conexiones se guardan solo en este navegador: no están en la web publicada, no se sincronizan y no van en las copias exportadas. El repositorio del agente también puede sincronizar tu progreso entre dispositivos: actívalo en «Tus datos».</Callout>
     </div>
   );
 }

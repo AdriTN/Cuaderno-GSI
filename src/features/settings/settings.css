@@ -24,3 +24,4 @@
 .ai-card__help code { font-family: var(--font-mono); font-size: .85em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 .ai-usage { display: grid; gap: var(--space-4); }
 .ai-usage__row { display: grid; gap: 6px; }
+.st-sync { display: grid; gap: var(--space-3); margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--line); }

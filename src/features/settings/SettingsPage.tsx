@@ -5,12 +5,14 @@ import { canInstall, isIOS, isStandalone, promptInstall, pwaSupported } from '@/
 import { SubscriptionSettings, UsagePanel } from './AiConnections';
 import { MODELS, aiBackend, aiErrorMessage, aiMode, apiKey, apiModel, insideClaude, setAiMode, setApiKey, testApiKey, type AiMode } from '@/core/services/ai';
 import { exportData, importData, inspectBackup, resetAll, updateSettings } from '@/core/store/actions';
-import { useDocs } from '@/core/store/store';
-import { syncMessage, syncState } from '@/core/store/sync';
+import { docs as allDocs, useDocs } from '@/core/store/store';
+import { hasProgress, lastSync, peekGithub, pull, startGithubSync, stopGithubSync, syncBackend, syncMessage, syncState } from '@/core/store/sync';
+import { checkRepo } from '@/core/services/agent';
+import { agentConfigured, connections } from '@/core/services/connections';
 import type { BlockId, Settings, Theme } from '@/core/types';
 import { WEEKDAYS_LONG, WEEKDAYS_SHORT, todayISO } from '@/core/utils/date';
 import { navigate } from '@/app/router';
-import { Button, Callout, Checkbox, confirmDialog, DatePicker, Dropdown, Field, Icon, Input, NumberField, Page, PageHeader, Panel, Segmented, TextArea, toast } from '@/ui';
+import { Button, Callout, Checkbox, confirmDialog, DatePicker, Dropdown, Field, Icon, Input, NumberField, Page, PageHeader, Panel, Segmented, Tag, TextArea, toast } from '@/ui';
 import './settings.css';
 
 function PlanSettings({ s }: { s: Settings }) {
@@ -67,7 +69,12 @@ function DataSettings() {
     if (!(await confirmDialog({ title: 'Importar copia', message: `Copia del ${summary.date}: ${summary.tests} tests, ${summary.seen} preguntas vistas, ${summary.topics} temas estudiados y ${summary.cards} tarjetas propias.\n\nSustituirá todo tu progreso actual.`, confirm: 'Importar', danger: true }))) return;
     importData(summary.json); toast('Copia importada');
   };
-  const syncText = { ok: 'Tu progreso se sincroniza entre los dispositivos donde abras la app con tu cuenta de Claude.', error: syncMessage.value || 'La sincronización ha fallado. Tus datos siguen en este dispositivo.', local: 'Tu progreso se guarda en este navegador. Si abres la app desde Claude con tu cuenta, se sincroniza entre dispositivos.' }[syncState.value];
+  const a = connections.value.agent;
+  const syncText = {
+    ok: syncBackend.value === 'github' ? `Tu progreso se sincroniza entre tus dispositivos a través de tu repositorio privado ${a.owner}/${a.repo}.` : 'Tu progreso se sincroniza entre los dispositivos donde abras la app con tu cuenta de Claude.',
+    error: syncMessage.value || 'La sincronización ha fallado. Tus datos siguen en este dispositivo.',
+    local: insideClaude ? 'Tu progreso se guarda en este navegador. Si abres la app desde Claude con tu cuenta, se sincroniza entre dispositivos.' : 'Tu progreso se guarda en este navegador. Para tenerlo en todos tus dispositivos, activa la sincronización con GitHub.',
+  }[syncState.value];
   return (
     <Panel title="Tus datos" subtitle={syncText}>
       <div class="u-row">
@@ -75,8 +82,57 @@ function DataSettings() {
         <label class="c-btn c-btn--secondary"><Icon name="sync" size={18} />Importar copia<input type="file" accept="application/json,.json" hidden onChange={e => doImport(e.target as HTMLInputElement)} /></label>
         <Button variant="danger" icon="trash" onClick={async () => { if (await confirmDialog({ title: 'Borrar todo', message: 'Se borrará todo tu progreso, notas, tarjetas y supuestos, y la clave de la API guardada en este navegador. No se puede deshacer.', confirm: 'Borrar todo', danger: true })) { resetAll(); toast('Progreso borrado'); } }}>Borrar todo</Button>
       </div>
+      {!insideClaude && <GithubSync />}
       {text && <div class="u-stack" style={{ marginTop: 'var(--space-4)' }}><Field label="Aquí no se pueden descargar archivos: copia este texto y guárdalo como .json"><TextArea readOnly value={text} style={{ minHeight: 120 }} /></Field><div class="u-row"><Button size="sm" onClick={() => navigator.clipboard?.writeText(text).then(() => toast('Copiado al portapapeles'), () => toast('No se pudo copiar'))}>Copiar</Button><Button size="sm" variant="ghost" onClick={() => setText('')}>Cerrar</Button></div></div>}
     </Panel>
+  );
+}
+
+const since = (t: number) => { const m = Math.round((Date.now() - t) / 6e4); return m < 1 ? 'ahora mismo' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : new Date(t).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }); };
+
+/** Sincronización entre dispositivos en la versión web: el progreso se guarda en el repositorio privado del agente. */
+function GithubSync() {
+  const a = connections.value.agent, on = syncBackend.value === 'github';
+  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [choice, setChoice] = useState<Awaited<ReturnType<typeof peekGithub>> | null>(null);
+  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e: any) { setError(e?.message || 'No se pudo conectar con GitHub.'); } setBusy(false); };
+  const activate = () => run(async () => {
+    await checkRepo();
+    const peek = await peekGithub();
+    if (peek.progress && hasProgress(allDocs)) { setChoice(peek); return; }
+    await startGithubSync(peek.progress ? 'remote' : 'merge', peek);
+    toast(peek.progress ? 'Progreso traído de GitHub' : 'Sincronización activada');
+  });
+  const choose = (mode: 'remote' | 'local') => run(async () => {
+    if (mode === 'local' && !(await confirmDialog({ title: 'Subir el progreso de este dispositivo', message: 'Sustituirá el progreso guardado en GitHub y, cuando los abras, el de tus otros dispositivos. No se puede deshacer.', confirm: 'Subir y sustituir', danger: true }))) return;
+    await startGithubSync(mode, choice!); setChoice(null);
+    toast(mode === 'remote' ? 'Progreso traído de GitHub' : 'Progreso subido a GitHub');
+  });
+
+  return (
+    <div class="st-sync">
+      <div class="u-spread"><strong>Sincronizar entre dispositivos</strong>{on && <Tag tone={syncState.value === 'error' ? 'bad' : 'ok'}>{syncState.value === 'error' ? 'Con errores' : 'Activada'}</Tag>}</div>
+      {!agentConfigured() ? (
+        <p class="u-muted u-small" style={{ margin: 0 }}>Se hace con el repositorio privado del agente de GitHub, gratis y sin cuentas nuevas. Configúralo primero en <strong>Inteligencia artificial → Agente en GitHub</strong> (usuario, repositorio y token) y vuelve aquí.</p>
+      ) : on ? <>
+        <p class="u-muted u-small" style={{ margin: 0 }}>Guardado en <strong>{a.owner}/{a.repo}</strong>, carpeta <code>sync</code>{lastSync.value ? `, última sincronización ${since(lastSync.value)}` : ''}. Los cambios se suben cada 20 segundos y al salir de la app; al volver a abrirla se traen los de tus otros dispositivos.</p>
+        <div class="u-row">
+          <Button size="sm" icon="sync" disabled={busy} onClick={() => run(async () => { await pull(); toast('Sincronizado'); })}>{busy ? 'Sincronizando…' : 'Sincronizar ahora'}</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => run(async () => { await stopGithubSync(); toast('Sincronización desactivada en este dispositivo'); })}>Desactivar</Button>
+        </div>
+      </> : choice ? <>
+        <Callout tone="warn">En GitHub ya hay progreso guardado (último cambio {since(choice.updated)}) y en este dispositivo también. ¿Con cuál te quedas? El otro se sustituye.</Callout>
+        <div class="u-row">
+          <Button size="sm" variant="primary" disabled={busy} onClick={() => choose('remote')}>Usar el de GitHub</Button>
+          <Button size="sm" disabled={busy} onClick={() => choose('local')}>Subir el de este dispositivo</Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setChoice(null)}>Cancelar</Button>
+        </div>
+      </> : <>
+        <p class="u-muted u-small" style={{ margin: 0 }}>Tu progreso se guardará en tu repositorio privado <strong>{a.owner}/{a.repo}</strong> (carpeta <code>sync</code>) con el mismo token del agente. Actívalo en cada dispositivo: en el primero se sube lo que tengas y en los demás se trae.</p>
+        <div><Button size="sm" variant="primary" icon="sync" disabled={busy} onClick={activate}>{busy ? 'Comprobando…' : 'Activar sincronización'}</Button></div>
+      </>}
+      {(error || (on && syncState.value === 'error' && syncMessage.value)) && <p class="u-small" style={{ margin: 0, color: 'var(--bad)' }}>{error || syncMessage.value}</p>}
+    </div>
   );
 }
 
@@ -88,7 +144,7 @@ function InstallSettings() {
         : canInstall.value ? <Button variant="primary" icon="download" onClick={async () => { if (await promptInstall()) toast('Cuaderno GSI instalado'); }}>Instalar Cuaderno GSI</Button>
         : isIOS ? <ol class="st-steps"><li>Abre esta página en <strong>Safari</strong>.</li><li>Pulsa el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba).</li><li>Elige <strong>Añadir a pantalla de inicio</strong> y confirma.</li></ol>
         : <ol class="st-steps"><li>Abre esta página en <strong>Chrome</strong>.</li><li>Pulsa el menú <strong>⋮</strong> de arriba a la derecha.</li><li>Elige <strong>Instalar aplicación</strong> (o «Añadir a pantalla de inicio»).</li></ol>}
-      <p class="u-muted u-small" style={{ margin: 'var(--space-3) 0 0' }}>Tu progreso aquí es independiente del de Claude y del de otros navegadores. Para pasarlo de un sitio a otro usa Exportar e Importar copia.</p>
+      <p class="u-muted u-small" style={{ margin: 'var(--space-3) 0 0' }}>Tu progreso aquí es independiente del de Claude. Para tenerlo también en tus otros dispositivos, activa la sincronización con GitHub en «Tus datos».</p>
     </Panel>
   );
 }

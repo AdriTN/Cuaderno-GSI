@@ -1,22 +1,22 @@
-import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { LIVE } from '@/core/content';
-import { onReset } from '@/core/store/store';
+import { commit, docs, useDocs } from '@/core/store/store';
 import { Button, Callout, Empty, Icon, Panel, Tag } from '@/ui';
 
 /**
  * Novedades de la oposición detectadas por el vigilante diario (scripts/check_updates.py).
- * Lo «ya visto» se recuerda en este dispositivo para avisar solo de lo nuevo.
+ * Lo «ya visto» se guarda en el documento sincronizado `misc`: lo que ves en un dispositivo deja de salir
+ * como nuevo en los demás.
  */
-const SEEN_KEY = 'cuaderno-gsi-news-seen';
-const seen = signal((() => { try { return localStorage.getItem(SEEN_KEY) ?? ''; } catch { return ''; } })());
-onReset(() => { try { localStorage.removeItem(SEEN_KEY); } catch { /* */ } seen.value = ''; });
+const OLD_SEEN_KEY = 'cuaderno-gsi-news-seen'; // versiones anteriores lo guardaban solo en este navegador
+try { const old = localStorage.getItem(OLD_SEEN_KEY); if (old) { localStorage.removeItem(OLD_SEEN_KEY); if (!docs.misc.news) { docs.misc.news = old; commit('misc'); } } } catch { /* */ }
 const latest = LIVE.news[0]?.id ?? '';
-export const unseenNews = () => { if (!latest || seen.value === latest) return 0; const i = LIVE.news.findIndex(n => n.id === seen.value); return i < 0 ? LIVE.news.length : i; };
-const markSeen = () => { if (!latest) return; try { localStorage.setItem(SEEN_KEY, latest); } catch { /* */ } seen.value = latest; };
+export const unseenNews = () => { const seen = docs.misc.news; if (!latest || seen === latest) return 0; const i = LIVE.news.findIndex(n => n.id === seen); return i < 0 ? LIVE.news.length : i; };
+const markSeen = () => { if (!latest || docs.misc.news === latest) return; docs.misc.news = latest; commit('misc'); };
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 
 export function NewsPanel() {
+  useDocs();
   const count = unseenNews();
   useEffect(() => { const t = setTimeout(markSeen, 1500); return () => clearTimeout(t); }, []);
   return (
@@ -34,6 +34,7 @@ export function NewsPanel() {
 
 /** Aviso para Hoy cuando hay novedades sin ver. */
 export function NewsCallout() {
+  useDocs();
   const count = unseenNews();
   if (!count) return null;
   return <Callout tone="info" action={<Button size="sm" variant="primary" href="#examen">Ver novedades</Button>}>Hay {count === 1 ? 'una novedad' : `${count} novedades`} de la oposición: {LIVE.news[0].title.slice(0, 90)}{LIVE.news[0].title.length > 90 ? '…' : ''}</Callout>;

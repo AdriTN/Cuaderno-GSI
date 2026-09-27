@@ -1,9 +1,10 @@
 import { signal } from '@preact/signals';
 import type { ComponentChildren } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 import { route } from '@/app/router';
 import { dueCardIds, dueQuestions, secondsToday } from '@/core/store/selectors';
 import { onReset, useDocs } from '@/core/store/store';
-import { syncMessage, syncState } from '@/core/store/sync';
+import { syncBackend, syncMessage, syncState } from '@/core/store/sync';
 import { clock } from '@/core/utils/format';
 import { Button, DialogHost, Icon, ToastHost, type IconName } from '@/ui';
 import { contextLabel, pendingSeconds, tick, timer, toggleTimer } from './studyTimer';
@@ -69,14 +70,30 @@ function TimerControl({ mobile }: { mobile?: boolean }) {
   );
 }
 
+/** Marca la lista del menú lateral cuando no cabe entera, para mostrar el degradado inferior hasta llegar al final. */
+function fadeEdge(el: HTMLElement | null) {
+  if (!el) return;
+  el.classList.toggle('is-scrollable', el.scrollHeight > el.clientHeight + 1);
+  el.classList.toggle('is-end', el.scrollTop + el.clientHeight >= el.scrollHeight - 2);
+}
+
 export function Shell({ children }: { children: ComponentChildren }) {
   useDocs();
+  const sideNav = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sideNav.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => fadeEdge(el));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const active = SECTION[route.value.name] ?? route.value.name;
   const group = groupOf(active);
   return (
     <div class="l-app">
       <aside class="l-side no-print" aria-label="Navegación principal">
         <a class="l-brand" href="#hoy"><Logo /><span><span class="l-brand__name">Cuaderno GSI</span><span class="l-brand__sub" style={{ display: 'block' }}>Oposición A2</span></span></a>
+        <div class="l-side__nav" ref={sideNav} onScroll={e => fadeEdge(e.currentTarget)}>
         {[...GROUPS.slice(0, 1).map(g => ({ ...g, items: [...g.items, ...GROUPS[1].items], label: 'Estudiar' })), ...GROUPS.slice(2), { id: 'ajustes', label: '', tab: '', icon: 'settings' as IconName, items: [SETTINGS] }].map(g => (
           <nav class="l-group" aria-label={g.label || g.items[0].label}>
             {g.label && <div class="l-group__label">{g.label}</div>}
@@ -86,10 +103,11 @@ export function Shell({ children }: { children: ComponentChildren }) {
               </a>); })}
           </nav>
         ))}
+        </div>
         <div class="l-side__foot">
           <TimerControl />
           <UsageMini />
-          <div class={`l-sync l-sync--${syncState.value}`} title={syncMessage.value}><i />{SYNC_LABEL[syncState.value]}</div>
+          <a class={`l-sync l-sync--${syncState.value}`} href="#ajustes" title={syncMessage.value || (syncBackend.value === 'github' ? 'Sincronizado con tu repositorio privado de GitHub' : syncBackend.value === 'claude' ? 'Sincronizado con tu cuenta de Claude' : 'Activa la sincronización en Ajustes → Tus datos')}><i />{SYNC_LABEL[syncState.value]}</a>
         </div>
       </aside>
       <main class="l-main" id="main">
