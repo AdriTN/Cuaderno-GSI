@@ -28,8 +28,10 @@ export async function refreshUsage(): Promise<void> {
   try {
     if (bridgeConfigured() && (await bridgeStatus()).ok) {
       const u = await bridgeUsage();
-      if (valid(u)) return store(u);
+      // Anthropic limita este servicio (429): el puente devuelve entonces el último dato bueno con un aviso.
+      if (valid(u)) { const { stale, note, ...data } = u as Usage & { stale?: boolean; note?: string }; store(data); if (stale) usageError.value = note || 'Dato sin actualizar.'; return; }
       usageError.value = u?.error || 'El puente no pudo leer el uso.';
+      if (/respondió 429/.test(usageError.value)) usageError.value = 'Anthropic limita cuántas veces se puede consultar el uso y ahora pide esperar. Reinicia el puente para tener la versión que espera sola y reutiliza el último dato.';
       return;
     }
     if (agentConfigured()) {

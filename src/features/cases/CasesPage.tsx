@@ -1,11 +1,10 @@
 import { signal } from '@preact/signals';
-import { useState } from 'preact/hooks';
 import { CONTENT, topicOptions } from '@/core/content';
 import { aiErrorMessage, aiStatus } from '@/core/services/ai';
 import { MAX_GENERATED, caseState, deleteGeneratedCase } from '@/core/store/actions';
 import { onReset, useDocs } from '@/core/store/store';
 import { num, words } from '@/core/utils/format';
-import { navigate } from '@/app/router';
+import { navigate, route } from '@/app/router';
 import { Button, Callout, confirmDialog, Dropdown, Field, List, Page, PageHeader, Panel, Row, StatusDot, Tag, toast } from '@/ui';
 import { FOCUS_LABEL, generateCase, type Focus } from './generator';
 import './cases.css';
@@ -21,14 +20,24 @@ function CaseRow({ id, title, generated }: { id: string; title: string; generate
     action={generated && <Button size="sm" variant="ghost" icon="trash" iconOnly aria-label="Borrar supuesto" onClick={async () => { if (await confirmDialog({ title: 'Borrar supuesto', message: 'Se borrará este supuesto generado junto con tus respuestas.', confirm: 'Borrar', danger: true })) deleteGeneratedCase(id); }} />} /></li>;
 }
 
+/**
+ * La generación tarda uno o dos minutos: su estado vive fuera del componente para que puedas cambiar de sección
+ * mientras tanto. El supuesto se guarda igual y, si sigues en Supuestos, se abre; si no, te avisa.
+ */
+const genState = signal<{ busy: boolean; error: string }>({ busy: false, error: '' });
+onReset(() => { genState.value = { busy: false, error: '' }; });
+
 function Generator({ count }: { count: number }) {
-  const f = form.value; const [busy, setBusy] = useState(false); const [error, setError] = useState('');
+  const f = form.value, { busy, error } = genState.value;
   const run = async () => {
     if (count >= MAX_GENERATED) return toast(`Tienes ${MAX_GENERATED} supuestos guardados: borra alguno para crear otro`);
-    setBusy(true); setError('');
-    try { const id = await generateCase(f.focus, f.topic, f.hard); toast('Supuesto creado'); navigate(`supuesto/${id}`); }
-    catch (e) { setError(aiErrorMessage(e)); }
-    setBusy(false);
+    genState.value = { busy: true, error: '' };
+    try {
+      const id = await generateCase(f.focus, f.topic, f.hard);
+      genState.value = { busy: false, error: '' };
+      if (route.peek().name === 'supuestos') { toast('Supuesto creado'); navigate(`supuesto/${id}`); }
+      else toast('Tu supuesto nuevo ya está listo en Supuestos');
+    } catch (e) { genState.value = { busy: false, error: aiErrorMessage(e) }; }
   };
   return (
     <Panel title="Crear un supuesto nuevo con IA" subtitle="Un caso al estilo del examen con su guía de corrección oculta hasta que termines. Tarda uno o dos minutos.">

@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { topicById } from '@/core/content';
 import { aiErrorMessage, aiStatus, askText } from '@/core/services/ai';
 import { explainPrompt } from '@/core/services/prompts';
+import { aiJob, runAiJob } from '@/core/services/aiJobs';
 import { flagQuestion, unflagQuestion } from '@/core/store/actions';
 import { isFlagged } from '@/core/store/selectors';
 import { useDocs } from '@/core/store/store';
@@ -10,14 +11,9 @@ import { Button, Field, Modal, TextArea, toast } from '@/ui';
 
 /** Explicación de una pregunta con IA, en línea. */
 export function ExplainButton({ q, answer }: { q: Question; answer: number }) {
-  const [text, setText] = useState(''); const [busy, setBusy] = useState(false);
+  const key = `explain:${q.i}:${answer}`, job = aiJob(key), text = job?.text ?? '', busy = !!job?.busy;
   if (aiStatus.value === 'off') return null;
-  const run = async () => {
-    setBusy(true); setText('Pensando…');
-    try { setText(await askText(explainPrompt(q, topicById[q.t].title, answer), { onText: setText })); }
-    catch (e) { setText(aiErrorMessage(e)); }
-    setBusy(false);
-  };
+  const run = () => runAiJob(key, 'Pensando…', onText => askText(explainPrompt(q, topicById[q.t].title, answer), { onText }), aiErrorMessage);
   return <>
     <Button size="sm" icon="spark" onClick={run} disabled={busy}>Explícamelo</Button>
     {text && <div class="t-ai" style={{ flexBasis: '100%' }}>{text}</div>}

@@ -11,6 +11,8 @@ import { contextLabel, pendingSeconds, tick, timer, toggleTimer } from './studyT
 import { AiActivity } from './AiActivity';
 import { ClaudeBridge } from './ClaudeBridge';
 import { UsageMini } from './UsageMini';
+import { activeSession } from '../test/session';
+import { run as cardRun } from '../cards/CardsPage';
 import './layout.css';
 
 type NavItem = { name: string; label: string; icon: IconName; badge?: () => number };
@@ -43,8 +45,26 @@ const lastInGroup = signal<Record<string, string>>({});
 onReset(() => { lastInGroup.value = {}; });
 route.subscribe(r => {
   const section = SECTION[r.name] ?? r.name, g = groupOf(section);
-  if (g && lastInGroup.peek()[g.id] !== section) lastInGroup.value = { ...lastInGroup.peek(), [g.id]: section };
+  // Si estabas en mitad de un test, la pestaña Practicar te devuelve a él y no a la página de configuración.
+  const target = r.name === 'run' ? 'run' : section;
+  if (g && lastInGroup.peek()[g.id] !== target) lastInGroup.value = { ...lastInGroup.peek(), [g.id]: target };
 });
+const tabTarget = (g: NavGroup) => { const t = lastInGroup.value[g.id] ?? g.items[0].name; return t === 'run' && !activeSession() ? 'entrenamiento' : t; };
+
+/**
+ * Trabajo a medias visible desde cualquier sección: un test o examen, o un repaso de tarjetas.
+ * Así, si vas a Ajustes o al temario en mitad de un test, tienes siempre a mano la vuelta.
+ */
+function ResumeBar() {
+  const r = route.value.name, s = activeSession(), cards = cardRun.value;
+  const items: { href: string; label: string; detail: string }[] = [];
+  if (s && r !== 'run') items.push({ href: '#run', label: s.mode === 'exam' ? 'Examen en curso' : 'Test en curso', detail: `${s.ans.filter(a => a !== -2).length}/${s.qs.length}` });
+  if (cards && cards.i < cards.queue.length && r !== 'tarjetas') items.push({ href: '#tarjetas', label: 'Repaso de tarjetas', detail: `${cards.i}/${cards.queue.length}` });
+  if (!items.length) return null;
+  return <div class="l-resume no-print" role="status">{items.map(it => (
+    <a class="l-resume__item" href={it.href}><Icon name="play" size={16} /><span class="l-resume__label">{it.label}</span><span class="l-resume__detail u-num">{it.detail}</span><span class="l-resume__go">Continuar</span></a>
+  ))}</div>;
+}
 
 /** Logotipo: cuaderno con marcapáginas amarillo (el color de subrayar). */
 const Logo = ({ size = 34 }: { size?: number }) => (
@@ -105,6 +125,7 @@ export function Shell({ children }: { children: ComponentChildren }) {
         ))}
         </div>
         <div class="l-side__foot">
+          <ResumeBar />
           <TimerControl />
           <UsageMini />
           <a class={`l-sync l-sync--${syncState.value}`} href="#ajustes" title={syncMessage.value || (syncBackend.value === 'github' ? 'Sincronizado con tu repositorio privado de GitHub' : syncBackend.value === 'claude' ? 'Sincronizado con tu cuenta de Claude' : 'Activa la sincronización en Ajustes → Tus datos')}><i />{SYNC_LABEL[syncState.value]}</a>
@@ -120,12 +141,13 @@ export function Shell({ children }: { children: ComponentChildren }) {
             {group.items.map(it => { const n = it.badge?.() ?? 0; return <a href={`#${it.name}`} aria-current={active === it.name ? 'page' : undefined}>{it.label}{n > 0 && <span class="l-subnav__n">{n}</span>}</a>; })}
           </nav>
         )}
+        <div class="l-mresume"><ResumeBar /></div>
         <div class="l-content">{children}</div>
       </main>
       <nav class="l-tabbar no-print" aria-label="Navegación principal">
         {GROUPS.map(g => {
           const current = group?.id === g.id;
-          const target = lastInGroup.value[g.id] ?? g.items[0].name;
+          const target = tabTarget(g);
           const pending = g.items.some(i => (i.badge?.() ?? 0) > 0);
           return <a class="l-tab" href={`#${target}`} aria-current={current ? 'page' : undefined}><Icon name={g.icon} size={22} />{g.tab}{pending && <span class="l-tab__dot" aria-label="Tienes pendientes" />}</a>;
         })}

@@ -11,7 +11,7 @@ export const DEFAULT_DOCS: Docs = {
   cases: { u: 0, m: {} },
   cards: { u: 0, m: {}, own: {} },
   gen: { u: 0, m: {} },
-  misc: { u: 0, cur: null, news: '' },
+  misc: { u: 0, cur: null, cards: null, news: '' },
 };
 export const DOC_KEYS = Object.keys(DEFAULT_DOCS) as DocKey[];
 

@@ -82,9 +82,11 @@ export interface Docs {
   cards: { u: number; e?: number; m: Record<string, SrsEntry>; own: Record<string, OwnCard> };
   gen: { u: number; e?: number; m: Record<string, GeneratedCase> };
   /** Estado en curso que también viaja entre dispositivos: el test o examen a medias y la última novedad vista. */
-  misc: { u: number; e?: number; cur: StoredSession | null; news: string };
+  misc: { u: number; e?: number; cur: StoredSession | null; cards: CardRun | null; news: string };
 }
 export type DocKey = keyof Docs;
+/** Repaso de tarjetas a medias: la cola, por dónde vas y el recuento; `at` es su último cambio. */
+export interface CardRun { label: string; queue: string[]; i: number; shown: boolean; tally: [number, number, number]; at?: number }
 /** Test o examen sin terminar, guardado por identificadores de pregunta; `at` es su último cambio. */
 export interface StoredSession {
   qids: string[]; ans: number[]; doubt: boolean[]; flag: boolean[]; time: number[]; revealed: boolean[];

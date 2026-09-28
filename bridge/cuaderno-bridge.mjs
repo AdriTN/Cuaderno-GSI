@@ -27,7 +27,7 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.PUENTE_PUERTO || 47821);
 const IS_WIN = process.platform === 'win32';
@@ -121,21 +121,38 @@ const enqueue = fn => { const p = chain.then(fn, fn); chain = p.catch(() => {});
 /* ---------------------------------------------------------------- uso de la suscripción */
 // El dato es el mismo que muestra /usage en Claude Code. Este servicio NO es una API oficial de Anthropic:
 // puede cambiar o dejar de funcionar; en ese caso la app simplemente no muestra el uso.
-let usageCache = { at: 0, data: null };
+// Anthropic limita mucho las consultas a este servicio (responde 429 si se pregunta a menudo, y además lo usa
+// Claude Code). Por eso: el dato se reutiliza 5 minutos (1 tras una consulta de IA), y ante un 429 se espera lo que
+// diga Retry-After o, si no lo dice, un tiempo que se duplica en cada intento (2, 4, 8… hasta 30 min), sin volver
+// a preguntar mientras tanto. Entretanto se devuelve el último dato bueno, marcado como no actualizado.
+const USAGE_FRESH_MS = 5 * 60_000, USAGE_AFTER_QUERY_MS = 60_000, USAGE_MAX_WAIT_MS = 30 * 60_000;
+let usageCache = { at: 0, data: null, dirty: false, blockedUntil: 0, backoff: 2 * 60_000 };
+const hhmm = t => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+const stale = msg => (usageCache.data ? { ...usageCache.data, stale: true, note: msg } : { error: msg, retryAt: new Date(usageCache.blockedUntil || Date.now()).toISOString() });
 async function readUsage() {
-  if (Date.now() - usageCache.at < 120_000 && usageCache.data) return usageCache.data;
+  const now = Date.now();
+  if (usageCache.data && now - usageCache.at < (usageCache.dirty ? USAGE_AFTER_QUERY_MS : USAGE_FRESH_MS)) return usageCache.data;
+  if (now < usageCache.blockedUntil) return stale(`Anthropic limita cuántas veces se puede consultar el uso. Se volverá a intentar a las ${hhmm(usageCache.blockedUntil)}.`);
   let token;
   try { token = JSON.parse(readFileSync(CREDENTIALS, 'utf8'))?.claudeAiOauth?.accessToken; } catch { /* */ }
   if (!token) return { error: 'No se encuentran las credenciales de Claude Code en este equipo (en macOS se guardan en el llavero y no se pueden leer).' };
   try {
     const r = await fetch(USAGE_URL, { headers: { Authorization: `Bearer ${token}`, 'anthropic-beta': 'oauth-2025-04-20', 'User-Agent': `cuaderno-gsi-puente/${VERSION}` }, signal: AbortSignal.timeout(10000) });
-    if (!r.ok) return { error: r.status === 401 ? 'La sesión de Claude Code ha caducado: abre `claude` para renovarla.' : `El servicio de uso respondió ${r.status}.` };
+    if (r.status === 429) {
+      const ra = Number(r.headers.get('retry-after'));
+      const wait = Math.min(USAGE_MAX_WAIT_MS, Number.isFinite(ra) && ra > 0 ? ra * 1000 : usageCache.backoff);
+      usageCache.blockedUntil = now + wait;
+      usageCache.backoff = Math.min(USAGE_MAX_WAIT_MS, usageCache.backoff * 2);
+      console.log(`${new Date().toLocaleTimeString('es-ES')}  uso: Anthropic pide esperar (429); siguiente intento a las ${hhmm(usageCache.blockedUntil)}`);
+      return stale(`Anthropic limita cuántas veces se puede consultar el uso. Se volverá a intentar a las ${hhmm(usageCache.blockedUntil)}.`);
+    }
+    if (!r.ok) return usageCache.data ? stale(`El servicio de uso respondió ${r.status}; se muestra el último dato.`) : { error: r.status === 401 ? 'La sesión de Claude Code ha caducado: abre `claude` para renovarla.' : `El servicio de uso respondió ${r.status}.` };
     const j = await r.json();
     const win = w => (w && typeof w.utilization === 'number' ? { pct: w.utilization, resetsAt: w.resets_at ?? null } : null);
     const data = { fiveHour: win(j.five_hour), sevenDay: win(j.seven_day), fetchedAt: new Date().toISOString(), source: 'puente' };
-    usageCache = { at: Date.now(), data };
+    usageCache = { at: Date.now(), data, dirty: false, blockedUntil: 0, backoff: 2 * 60_000 };
     return data;
-  } catch (e) { return { error: `No se pudo consultar el uso: ${e.message}` }; }
+  } catch (e) { return usageCache.data ? stale(`No se pudo consultar el uso (${e.message}); se muestra el último dato.`) : { error: `No se pudo consultar el uso: ${e.message}` }; }
 }
 
 /* ---------------------------------------------------------------- servidor */
@@ -176,7 +193,7 @@ const server = createServer(async (req, res) => {
       if (typeof prompt !== 'string' || !prompt.trim()) return send(res, 400, { error: 'Falta la consulta.' });
       const started = Date.now();
       const text = await enqueue(() => runClaude(prompt));
-      usageCache.at = 0; // el uso ha cambiado
+      usageCache.dirty = true; // el uso ha cambiado: se podrá volver a leer al cabo de un minuto
       console.log(`${new Date().toLocaleTimeString('es-ES')}  consulta respondida en ${((Date.now() - started) / 1000).toFixed(1)} s`);
       return send(res, 200, { text });
     }

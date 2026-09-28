@@ -7,8 +7,9 @@ import { aiBackend, aiStatus } from '@/core/services/ai';
 import { agentConfigured, bridgeConfigured } from '@/core/services/connections';
 import { deleteOwnCard, gradeStudyCard } from '@/core/store/actions';
 import { dueCardIds, newCardIds, topicStatus } from '@/core/store/selectors';
-import { docs, onReset, useDocs } from '@/core/store/store';
-import type { SrsEntry } from '@/core/types';
+import { commit, docs, onReset, useDocs } from '@/core/store/store';
+import { onPulled } from '@/core/store/sync';
+import type { CardRun, SrsEntry } from '@/core/types';
 import { today } from '@/core/utils/date';
 import { plural, truncate } from '@/core/utils/format';
 import { shuffle } from '@/core/utils/random';
@@ -19,9 +20,26 @@ import { aiCardsOf, bulkJob, cancelBulk, clearBulk, generateBulk, generateCards 
 import './cards.css';
 
 /* ---------- sesión de repaso ---------- */
-type Run = { label: string; queue: string[]; i: number; shown: boolean; tally: [number, number, number] };
-const run = signal<Run | null>(null);
-onReset(() => { run.value = null; });
+/**
+ * El repaso a medias se guarda en el documento sincronizado `misc`: sobrevive a cambiar de sección, recargar
+ * o cerrar la app, y se puede seguir en otro dispositivo.
+ */
+type Run = CardRun;
+export const run = signal<Run | null>(docs.misc.cards ?? null);
+let applyingRemote = false;
+run.subscribe(r => {
+  if (applyingRemote) return;
+  const next = r && r.i < r.queue.length ? { ...r, at: Date.now() } : null;
+  if (JSON.stringify(next && { ...next, at: 0 }) === JSON.stringify(docs.misc.cards && { ...docs.misc.cards, at: 0 })) return;
+  docs.misc.cards = next; commit('misc');
+});
+onPulled(() => {
+  const remote = docs.misc.cards ?? null, local = run.peek();
+  if (JSON.stringify(remote && { ...remote, at: 0 }) === JSON.stringify(local && { ...local, at: 0 })) return;
+  if (local && local.i >= local.queue.length) return;            // estás viendo el resumen final: no se toca
+  applyingRemote = true; run.value = remote; applyingRemote = false;
+});
+onReset(() => { applyingRemote = true; run.value = null; applyingRemote = false; });
 const NEW_PER_SESSION = 20;
 
 /** Cola de repaso: primero las pendientes (hasta 200) y luego nuevas (hasta 20). */

@@ -14,7 +14,7 @@ import { onPulled } from '@/core/store/sync';
 import type { HistEntry, Question, StoredSession } from '@/core/types';
 import { today, todayISO } from '@/core/utils/date';
 import { shuffle } from '@/core/utils/random';
-import { toast } from '@/ui';
+import { confirmDialog, toast } from '@/ui';
 import { isTimerRunning } from '../layout/studyTimer';
 
 export type Mode = 'practice' | 'exam';
@@ -86,7 +86,23 @@ const touch = () => { session.value = { ...session.value! }; };
 
 export interface StartOptions { qids?: string[]; topics?: string[]; count?: number; mode: Mode; label: string; kind?: string; sources?: Sources; filter?: Filter; limit?: number }
 
-export function startTest(o: StartOptions) {
+/**
+ * Empieza un test. Si hay otro a medias con respuestas, pregunta antes de sustituirlo: nunca se pierde sin avisar.
+ * Devuelve false si no se empezó (cancelado o sin preguntas).
+ */
+export async function startTest(o: StartOptions): Promise<boolean> {
+  const cur = activeSession();
+  if (cur) {
+    const answered = cur.ans.filter(a => a !== -2).length;
+    if (answered > 0) {
+      const ok = await confirmDialog({
+        title: 'Tienes un test sin terminar',
+        message: `«${cur.label}»: ${answered} de ${cur.qs.length} respondidas.\n\nSi empiezas otro, ese se descarta (las respuestas ya corregidas se conservan en tu progreso). Si prefieres terminarlo, cancela y pulsa «Continuar».`,
+        confirm: 'Descartarlo y empezar', danger: true,
+      });
+      if (!ok) return false;
+    }
+  }
   let qs: Question[];
   if (o.qids) qs = o.qids.map(id => questionById[id]).filter(Boolean);
   else {
@@ -96,7 +112,7 @@ export function startTest(o: StartOptions) {
     if (!pool.length && o.filter && o.filter !== 'all') pool = questionPool({ ...base, filter: 'all' });
     qs = o.filter === 'weak' ? pickAdaptive(pool, o.count ?? 25, docs.srs.m, today()) : shuffle(pool).slice(0, o.count ?? 25);
   }
-  if (!qs.length) { toast('No hay preguntas con esos filtros'); return; }
+  if (!qs.length) { toast('No hay preguntas con esos filtros'); return false; }
   const n = qs.length, now = Date.now();
   session.value = {
     qs, ans: Array(n).fill(-2), doubt: Array(n).fill(false), flag: Array(n).fill(false), time: Array(n).fill(0), revealed: Array(n).fill(false),
@@ -104,6 +120,7 @@ export function startTest(o: StartOptions) {
     limit: o.limit ?? (o.mode === 'exam' ? Math.min(EXAM_SECONDS, n * SECONDS_PER_QUESTION) : 0), done: false,
   };
   navigate('run');
+  return true;
 }
 
 function accrueTime(s: Session) { const now = Date.now(); s.time[s.i] += (now - s.qStartedAt) / 1000; s.qStartedAt = now; }

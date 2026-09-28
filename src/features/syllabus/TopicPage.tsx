@@ -11,6 +11,7 @@ import { hours, pct, truncate } from '@/core/utils/format';
 import { htmlToText } from '@/core/utils/text';
 import { Button, Callout, Empty, Field, Icon, Page, PageHeader, Panel, Segmented, STATUS_LABEL, TextArea, toast } from '@/ui';
 import { CardForm } from '../cards/CardForm';
+import { aiJob, aiJobs, runAiJob } from '@/core/services/aiJobs';
 import { generateCards } from '../cards/aiCards';
 import { startTest } from '../test/session';
 import { applyHighlights, selectionToHighlight } from './highlights';
@@ -65,13 +66,13 @@ function SelectionBar({ sel, onHighlight, onRemove, onCard, onClose }: { sel: No
 }
 
 function Outline({ id }: { id: string }) {
-  const [text, setText] = useState(''); const [busy, setBusy] = useState(false);
+  const key = `outline:${id}`, job = aiJob(key), text = job?.text ?? '', busy = !!job?.busy;
   if (aiStatus.value === 'off') return null;
-  const run = async () => { setBusy(true); setText('Preparando el esquema…'); try { setText(await askText(outlinePrompt(topicById[id].title, htmlToText(CONTENT.content[id]).slice(0, 16000)), { onText: setText })); } catch (e) { setText(aiErrorMessage(e)); } setBusy(false); };
+  const run = () => runAiJob(key, 'Preparando el esquema…', onText => askText(outlinePrompt(topicById[id].title, htmlToText(CONTENT.content[id]).slice(0, 16000)), { onText }), aiErrorMessage);
   const html = text.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!)).replace(/\*\*(.+?)\*\*/g, '<mark>$1</mark>');
   return <>
     <div class="u-row"><Button size="sm" icon="spark" onClick={run} disabled={busy}>Proponer un esquema con IA</Button><Button size="sm" icon="cards" onClick={() => generateCards(id)}>Crear 10 tarjetas con IA</Button></div>
-    {text && <><pre class="s-outline" dangerouslySetInnerHTML={{ __html: html }} />{!busy && <div><Button size="sm" variant="primary" onClick={() => { const cur = store.notes.m[id] ?? ''; saveNote(id, (cur ? cur + '\n\n' : '') + text); toast('Esquema añadido a tus notas'); }}>Añadir a mis notas</Button></div>}</>}
+    {text && <><pre class="s-outline" dangerouslySetInnerHTML={{ __html: html }} />{!busy && <div><Button size="sm" variant="primary" onClick={() => { const cur = store.notes.m[id] ?? ''; saveNote(id, (cur ? cur + '\n\n' : '') + text); toast('Esquema añadido a tus notas'); aiJobs.value = { ...aiJobs.value, [key]: { text: '', busy: false } }; }}>Añadir a mis notas</Button></div>}</>}
   </>;
 }
 

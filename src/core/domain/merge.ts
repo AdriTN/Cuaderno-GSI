@@ -80,7 +80,10 @@ export function mergeDoc(key: DocKey, local: Obj, remote: Obj): Obj {
     case 'cases': out = { ...o, ...n, m: unionBy(n.m, o.m, pickCase) }; break;
     case 'gen': out = { ...o, ...n, m: unionBy(n.m, o.m) }; break;
     // Test a medias: el que se tocó por última vez (terminarlo en un dispositivo lo quita del otro).
-    case 'misc': out = { ...o, ...n, cur: (n.cur?.at ?? n.u ?? 0) >= (o.cur?.at ?? 0) ? n.cur : o.cur, news: n.news || o.news }; break;
+    case 'misc': out = { ...o, ...n,
+      cur: (n.cur?.at ?? n.u ?? 0) >= (o.cur?.at ?? 0) ? n.cur : o.cur,
+      cards: (n.cards?.at ?? n.u ?? 0) >= (o.cards?.at ?? 0) ? n.cards : o.cards,
+      news: n.news || o.news }; break;
     default: out = { ...n };
   }
   out.u = Math.max(local.u ?? 0, remote.u ?? 0) + 1;

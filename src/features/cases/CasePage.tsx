@@ -20,6 +20,14 @@ function stopClock() {
   saveCaseTime(c.id, c.base + (Date.now() - c.since) / 1000, c.qt);
   clockState.value = null;
 }
+/**
+ * Al salir del supuesto con el reloj en marcha, el tiempo se guarda y el reloj se pausa (no cuenta mientras
+ * estás en otra sección). Al volver a ese mismo supuesto, se reanuda solo.
+ */
+let resumeOnReturn: string | null = null;
+function leaveCase(id: string) {
+  if (clockState.value?.id === id) { resumeOnReturn = id; stopClock(); }
+}
 setInterval(() => {
   const c = clockState.value; if (!c) return;
   if (c.focus >= 0) c.qt[c.focus] = (c.qt[c.focus] ?? 0) + 1;
@@ -27,7 +35,7 @@ setInterval(() => {
 }, 1000);
 addEventListener('beforeunload', stopClock);
 /** Al borrar o importar datos, el cronómetro se descarta sin guardar. */
-onReset(() => { clockState.value = null; });
+onReset(() => { clockState.value = null; resumeOnReturn = null; });
 
 function ScoreView({ s }: { s: AiScore }) {
   const rows: [string, number, number][] = [['Aplicación técnica', s.technical, 30], ['Capacidad de análisis', s.analysis, 10], ['Sistemática', s.systematic, 5], ['Expresión escrita', s.expression, 5]];
@@ -45,7 +53,14 @@ export function CasePage({ id }: { id: string }) {
   const c = getCase(id);
   const [showGuide, setShowGuide] = useState(false); const [grading, setGrading] = useState(false); const [error, setError] = useState('');
   const guideRef = useRef<HTMLDivElement>(null);
-  useEffect(() => () => stopClock(), [id]);
+  useEffect(() => {
+    if (resumeOnReturn === id) {
+      resumeOnReturn = null;
+      const st0 = caseState(id);
+      if (st0.st !== 2) clockState.value = { id, since: Date.now(), base: st0.t, qt: [...(st0.qt ?? [0, 0, 0, 0, 0])], focus: -1 };
+    }
+    return () => leaveCase(id);
+  }, [id]);
   useEffect(() => { setShowGuide(false); setError(''); }, [id]);
   if (!c) return <Empty title="Supuesto no encontrado" action={<Button href="#supuestos">Ver supuestos</Button>}>Si lo creaste en otro dispositivo, espera a que se sincronice.</Empty>;
 
