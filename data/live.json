@@ -1,7 +1,57 @@
 {
- "checked": "2026-09-28T14:16+00:00",
- "last_boe_day": "2026-09-28",
- "news": [],
+ "checked": "2026-09-29T13:11+00:00",
+ "last_boe_day": "2026-09-29",
+ "news": [
+  {
+   "id": "doc:87f142675b51c665",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Nota de la Comisión Permanente de Selección:",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/Cronograma%20CPS%202025_2026_09_29.pdf"
+  },
+  {
+   "id": "doc:2b5ab612d385d0c6",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Resolución por la que se aprueba la relación de opositores que han superado el primer ejercicio",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/report_Resoluci%C3%B3n%20superan%20primer%20ejercicio%20Gestiones_0.pdf"
+  },
+  {
+   "id": "doc:3524870b1cf75dd2",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Acceso general",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/1-GSI-L-DM-SUP_GEN.pdf"
+  },
+  {
+   "id": "doc:817f1b5dcc8a41c9",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Cupo Norma Común 13",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/1-GSI-L-DM-SUP_CRD.pdf"
+  },
+  {
+   "id": "doc:576d5749973e9d6e",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Plantilla definitiva de respuestas",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/Plantilla%20DEFINITIVA%20respuestas%20GSI-L%20OEP2025.pdf"
+  },
+  {
+   "id": "doc:9fbbf7b04c2e2b25",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Nota informativa puntuaciones mínimas",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/PUNTUACIONES%20MINIMAS%201%20EJER%20GSI%20L.pdf"
+  },
+  {
+   "id": "doc:a5a206ae9dd31efe",
+   "date": "2026-09-29",
+   "source": "INAP, convocatoria 2025",
+   "title": "Nuevo documento: Nota informativa: fórmula de transformación de puntuaciones directas en calificaciones",
+   "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/Nota%20informativa%20F%C3%B3rmula%20Transformada.pdf"
+  }
+ ],
  "library": [
   {
    "year": 2025,
@@ -27,6 +77,10 @@
     {
      "label": "Nota de la Comisión Permanente de Selección",
      "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-07/CronogramaCPS2025_2026_07_27_6BS0SFBILS_154AB89SD658.pdf"
+    },
+    {
+     "label": "Nota de la Comisión Permanente de Selección:",
+     "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-09/Cronograma%20CPS%202025_2026_09_29.pdf"
     },
     {
      "label": "Resolución de 12 de marzo de 2026 del Instituto Nacional de Administración Pública",
@@ -243,10 +297,6 @@
     {
      "label": "Cuestionario",
      "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-05/Cuestionario-GSI-L%201ej.pdf"
-    },
-    {
-     "label": "Plantilla provisional de respuestas",
-     "url": "https://sede.inap.gob.es/sites/sede/files/public/2026-05/Plantilla%20respuestas%20GSI-L.pdf"
     }
    ]
   },
@@ -774,6 +824,7 @@
   "doc:293ee88a58d42194",
   "doc:294566994cb8a9a9",
   "doc:2b24ed6d84feae8e",
+  "doc:2b5ab612d385d0c6",
   "doc:2c2be06f5b8f44ae",
   "doc:2e1ca950068e1845",
   "doc:30ac9ede49e61ecd",
@@ -783,6 +834,7 @@
   "doc:31e09127e4b3db7e",
   "doc:34612c8fcf6657ee",
   "doc:347d41abe58d0ad4",
+  "doc:3524870b1cf75dd2",
   "doc:3584e57cf14bc5e7",
   "doc:35903d3f6f0bc18c",
   "doc:3921633a3f2d2bf5",
@@ -820,6 +872,7 @@
   "doc:5456ad318848e6f4",
   "doc:54961a0de289cf82",
   "doc:550e371b84e42ebf",
+  "doc:576d5749973e9d6e",
   "doc:581dbd789644fc98",
   "doc:59bafaafc8266a63",
   "doc:59da16319186b974",
@@ -859,10 +912,12 @@
   "doc:7fbb8cafb8c39fc0",
   "doc:7ff636f9e1616988",
   "doc:801bb7e32de1ecc0",
+  "doc:817f1b5dcc8a41c9",
   "doc:83e5ad081b634597",
   "doc:865682fd6314caea",
   "doc:86d30358dde324d6",
   "doc:87b3c209bc386b6f",
+  "doc:87f142675b51c665",
   "doc:882ebe40f8dedb53",
   "doc:8b0935b98f8e7a35",
   "doc:8b1fd70c89042a35",
@@ -888,11 +943,13 @@
   "doc:9ccd61dcf610f568",
   "doc:9ec1cdeb0f2fbfc0",
   "doc:9f65f97420b99f3f",
+  "doc:9fbbf7b04c2e2b25",
   "doc:a20d8ec54abad4f3",
   "doc:a249db68857a9a96",
   "doc:a338d84cbaecde84",
   "doc:a57baa63b2501dd5",
   "doc:a5871274e9670351",
+  "doc:a5a206ae9dd31efe",
   "doc:a656da3185e39071",
   "doc:a7d59b960b684acd",
   "doc:a814d7ccba7fdab5",
