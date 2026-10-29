@@ -1,7 +1,14 @@
 {
- "checked": "2026-10-28T13:18+00:00",
- "last_boe_day": "2026-10-28",
+ "checked": "2026-10-29T13:26+00:00",
+ "last_boe_day": "2026-10-29",
  "news": [
+  {
+   "id": "boe:BOE-A-2026-22673",
+   "date": "2026-10-29",
+   "source": "BOE",
+   "title": "Resolución de 21 de octubre de 2026, de la Universidad Politécnica de Madrid, por la que se corrigen errores en la de 18 de mayo de 2026, por la que se convocan pruebas selectivas para ingreso, por el sistema general de acceso libre y promoción interna, en la Escala de Gestión de Sistemas e Informática.",
+   "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-22673"
+  },
   {
    "id": "doc:87f142675b51c665",
    "date": "2026-09-29",
@@ -796,6 +803,7 @@
   }
  ],
  "known": [
+  "boe:BOE-A-2026-22673",
   "doc:01cdaf8504958639",
   "doc:028c6f3304ceb9dd",
   "doc:065a19d6929f15a0",
